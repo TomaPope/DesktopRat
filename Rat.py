@@ -39,6 +39,8 @@ IMGWIDTH = img.width
 #states
 CurrentState = "Walking"
 MenuOpen = False
+storedstate = "1"
+newstate = "1"
 
 #Settings
 LimitedVelocity = True
@@ -48,8 +50,7 @@ class Rat():
 
     #Runs On Start
     def __init__(self):
-        print("Rat Starting Phase: 1")
-
+        #Sets the Window and image
         self.window = tk.Tk()
         # self.window = tk.Tk()
         self.walking_right = [tk.PhotoImage(
@@ -61,17 +62,18 @@ class Rat():
         self.laying = [tk.PhotoImage(
             file="pictures/layingdown.gif", format='gif -index %i' % (i)) for i in range(6)]
         self.frame_index = 0
-
         self.img = self.walking_right[self.frame_index]
         self.timestamp = time.time()
-        self.timestamp2 = time.time()
-        print("Rat Starting Phase: 2")        
+        self.changeaction = time.time()
+        # self.changeaction += random.randrange(60, 180)
+        self.changeaction += random.randrange(5,10)
+        #Removes the background Colors
         self.window.config(highlightbackground='#418EE4')
         self.window.overrideredirect(True)
         self.window.attributes('-topmost', True)
         self.window.wm_attributes('-transparentcolor', '#418EE4')
         self.label = tk.Label(self.window, bd=0, bg='#418EE4')
-        print("Rat Starting Phase: 3")
+        #Finalizes Window
         self.x = 0
         self.window.geometry('138x144+{x}+0'.format(x=str(self.x)))
         self.label.configure(image=self.img)
@@ -111,6 +113,8 @@ class Rat():
         global Velocity
         #RatVar
         global CurrentState
+        global storedstate
+        global newstate
         global LookingRight
         global WalkToPosition
         global speed
@@ -134,6 +138,23 @@ class Rat():
 
         if y > GroundYPosition:
             y = GroundYPosition
+        
+        if self.changeaction <= time.time():
+            self.changeaction = time.time()
+            self.changeaction += random.randrange(5,10)
+            randomoptions = ["Walking", "Sitting", "Chasing"]
+            storedstate = CurrentState
+            newstate = random.choice(randomoptions)
+            if storedstate == "Sitting" and newstate != "Sitting":
+                frame = 6
+                CurrentState = "Standing"
+            elif storedstate == "Sitting" and newstate -- "Sitting":
+                pass
+            else:
+                CurrentState = newstate
+                if CurrentState == "Sitting":
+                    frame = 0
+            
 
         #Walking Function
         if CurrentState == "Walking":
@@ -141,7 +162,7 @@ class Rat():
             if time.time() > self.timestamp + speed:
                 if WalkToPosition == None:
                     WalkToPosition = random.randrange(0, monitorwidth - int(IMGWIDTH/2))
-                    print("Going To Position:" , WalkToPosition)
+                    # print("Going To Position:" , WalkToPosition)
                 if WalkToPosition > x:
                     LookingRight = True
                     x += 1
@@ -252,7 +273,7 @@ class Rat():
                 if frame >= 0:
                     self.img = self.laying[frame]
                 else:
-                    CurrentState = "Walking"
+                    CurrentState = newstate
         
         #Chasing Function
         if CurrentState == "Chasing":
@@ -372,7 +393,7 @@ class Rat():
 
 
 
-print("Screen Size: ", monitorwidth)
-print("Rat Starting...")
+# print("Screen Size: ", monitorwidth)
+# print("Rat Starting...")
 thread1 = threading.Thread(target=Rat)
 thread1.start()

@@ -6,7 +6,7 @@ An adorable rat that walks around and hangs out on your taskbar
 The rat will walk around to random locations on your taskbar occastionally do other things like chasing your mouse. At any time you can click and hold to pick-up and throw the rat or you can right click the rat to open the menu and play with him. The menu also contains settings and debug information you can use to mess around with.
 
 ## Actions
-In the menu actions are activites the rat can do automatically but when activated in the menu it will override the current activie temporary.
+In the menu actions are activites the rat can do automatically but when activated in the menu it will override the current activity temporary.
 | Action | Description |
 |---------|-------|
 | Walk | When on the rat will walk randomly around the taskbar (Default) |
@@ -17,3 +17,4 @@ In the menu actions are activites the rat can do automatically but when activate
 | Setting | Description | Default Value |
 |---------|-------|---------------|
 |Limited Velocity| Limits the force you can throw the rat with | True |
+|Automate Actions| Allows the rat to automatically switch actions on it's own | True |

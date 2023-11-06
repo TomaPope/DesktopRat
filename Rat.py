@@ -39,11 +39,14 @@ IMGWIDTH = img.width
 #states
 CurrentState = "Walking"
 MenuOpen = False
+LeastTime = 60
+MostTime = 180
 storedstate = "1"
 newstate = "1"
 
 #Settings
 LimitedVelocity = True
+AutomatedActions = True
 
 # Main Rat Class
 class Rat():
@@ -66,7 +69,9 @@ class Rat():
         self.timestamp = time.time()
         self.changeaction = time.time()
         # self.changeaction += random.randrange(60, 180)
-        self.changeaction += random.randrange(5,10)
+        global LeastTime
+        global MostTime
+        self.changeaction += random.randrange(LeastTime,MostTime)
         #Removes the background Colors
         self.window.config(highlightbackground='#418EE4')
         self.window.overrideredirect(True)
@@ -113,6 +118,8 @@ class Rat():
         global Velocity
         #RatVar
         global CurrentState
+        global LeastTime
+        global MostTime
         global storedstate
         global newstate
         global LookingRight
@@ -120,6 +127,7 @@ class Rat():
         global speed
         #Settings
         global LimitedVelocity
+        global AutomatedActions
 
 
         #Gets any Variables about ScreenSizes and the ground and keeps them updated
@@ -138,23 +146,26 @@ class Rat():
 
         if y > GroundYPosition:
             y = GroundYPosition
-        
-        if self.changeaction <= time.time():
-            self.changeaction = time.time()
-            self.changeaction += random.randrange(5,10)
-            randomoptions = ["Walking", "Sitting", "Chasing"]
-            storedstate = CurrentState
-            newstate = random.choice(randomoptions)
-            if storedstate == "Sitting" and newstate != "Sitting":
-                frame = 6
-                CurrentState = "Standing"
-            elif storedstate == "Sitting" and newstate -- "Sitting":
-                pass
-            else:
-                CurrentState = newstate
-                if CurrentState == "Sitting":
-                    frame = 0
-            
+        if AutomatedActions == True:
+            if self.changeaction <= time.time():
+                self.changeaction = time.time()
+                self.changeaction += random.randrange(LeastTime,MostTime)
+                randomoptions = ["Walking", "Sitting", "Chasing"]
+                storedstate = CurrentState
+                newstate = random.choice(randomoptions)
+                if storedstate == "Sitting" and newstate != "Sitting":
+                    frame = 6
+                    CurrentState = "Standing"
+                elif storedstate == "Sitting" and newstate == "Sitting":
+                    pass
+                else:
+                    CurrentState = newstate
+                    if CurrentState == "Sitting":
+                        frame = 0
+                        
+                        
+                print(newstate)
+                
 
         #Walking Function
         if CurrentState == "Walking":
@@ -314,7 +325,9 @@ class Rat():
         global LimitedVelocity
         LVSub = tk.BooleanVar()
         LVSub.set(LimitedVelocity)
-        
+        global AutomatedActions
+        AASub = tk.BooleanVar()
+        AASub.set(AutomatedActions)
         #Menu Settings
         my_menu = tk.Menu(self.window, tearoff=False, background='white', fg='black', activeforeground="black")
         ActionsSub = tk.Menu(my_menu, tearoff=0)
@@ -338,6 +351,7 @@ class Rat():
         #Settings
         my_menu.add_cascade(label="Settings", menu=SettingsSub)
         SettingsSub.add_checkbutton(label="Limit Throw Velocity", variable=LVSub, command=self.ToggleLimitedVelocity)
+        SettingsSub.add_checkbutton(label="Automate Actions", variable=AASub, command=self.ToggleAutoA)
         SettingsSub.add_separator()
         
         #Debugs
@@ -374,6 +388,9 @@ class Rat():
     def ToggleLimitedVelocity(self):
         global LimitedVelocity
         LimitedVelocity = not LimitedVelocity
+    def ToggleAutoA(self):
+        global AutomatedActions
+        AutomatedActions = not AutomatedActions
     def JustWalk(self):
         global CurrentState
         if CurrentState == "Sitting" or CurrentState == "Chasing":

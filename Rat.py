@@ -56,6 +56,9 @@ class Rat():
         #Sets the Window and image
         self.window = tk.Tk()
         # self.window = tk.Tk()
+        self.roll_index = 0
+        self.Rolling = [tk.PhotoImage(
+            file="pictures/RatRoll.gif", format='gif -index %i' % (i)) for i in range(4)]
         self.walking_right = [tk.PhotoImage(
             file="pictures/ratwalk.gif", format='gif -index %i' % (i)) for i in range(8)]
         self.walking_left = [tk.PhotoImage(
@@ -84,8 +87,9 @@ class Rat():
         self.label.configure(image=self.img)
         self.label.pack()
         self.window.after(0, self.update)
-        self.window.mainloop()
         print("Rat Started")
+        print("Version 1.1")
+        self.window.mainloop()
 
     #Gravity Functions When Called Causes Gravity
     def Gravity(self):
@@ -154,7 +158,7 @@ class Rat():
             if self.changeaction <= time.time():
                 self.changeaction = time.time()
                 self.changeaction += random.randrange(LeastTime,MostTime)
-                randomoptions = ["Walking", "Sitting", "Chasing"]
+                randomoptions = ["Walking", "Sitting", "Chasing", "Rolling"]
                 storedstate = CurrentState
                 newstate = random.choice(randomoptions)
                 if storedstate == "Sitting" and newstate != "Sitting":
@@ -170,7 +174,6 @@ class Rat():
                         
                 # print(newstate)
                 
-
         #Walking Function
         if CurrentState == "Walking":
             self.Gravity()
@@ -204,6 +207,17 @@ class Rat():
                     self.img = self.walking_right[self.frame_index]
                 else:
                     self.img = self.walking_left[self.frame_index]
+
+        if CurrentState == "Rolling":
+            if x >= monitorwidth - int(IMGWIDTH/2):
+                CurrentState = "Walking"
+            LookingRight = True
+            x += 5
+            if time.time() > self.timestamp + 0.1:
+                self.timestamp = time.time()
+                # advance the frame by one, wrap back to 0 at the end
+                self.roll_index = (self.roll_index + 1) % 4
+                self.img = self.Rolling[self.roll_index]
 
         #Dragging Function
         if CurrentState == "Dragging":
@@ -249,7 +263,7 @@ class Rat():
                 Velocity[0] = -Velocity[0]
             if y <= 0:
                 y = 0
-                Velocity[1] = -Velocity[1]
+                Velocity[1] = 0
                 
                 
                 
@@ -340,7 +354,9 @@ class Rat():
         
         #Actions
         my_menu.add_cascade(label="Actions", menu=ActionsSub)
+        ActionsSub.add_separator()
         ActionsSub.add_command(label="Walk", command=self.JustWalk)
+        ActionsSub.add_command(label="Roll", command=self.Roll)
         #ACT-Chase
         if CurrentState == "Chasing":
             ActionsSub.add_command(label="Stop Chase", command=self.Chase)
@@ -351,18 +367,23 @@ class Rat():
             ActionsSub.add_command(label="Stand", command=self.Sit)
         else:
             ActionsSub.add_command(label="Sit", command=self.Sit)
+        ActionsSub.add_separator()
+        
             
         #Settings
         my_menu.add_cascade(label="Settings", menu=SettingsSub)
+        SettingsSub.add_separator()
         SettingsSub.add_checkbutton(label="Limit Throw Velocity", variable=LVSub, command=self.ToggleLimitedVelocity)
         SettingsSub.add_checkbutton(label="Automate Actions", variable=AASub, command=self.ToggleAutoA)
         SettingsSub.add_separator()
         
         #Debugs
         my_menu.add_cascade(label="Debugs", menu=DebugsSub)
-        DebugsSub.add_command(label=f"Current State: ({CurrentState})")
-        DebugsSub.add_command(label=f"Current WalkToPosition: ({WalkToPosition})")
+        DebugsSub.add_separator()
+        DebugsSub.add_command(label=f"[ Current State: ({CurrentState}) ]")
+        DebugsSub.add_command(label=f"[ Current WalkToPosition: ({WalkToPosition}) ]")
         DebugsSub.add_command(label=f"New Random WalkToPosition", command=self.newposition)
+        DebugsSub.add_separator()
         
         #Extra Parts
         my_menu.add_command(label="KILL", command=self.quit)
@@ -383,6 +404,12 @@ class Rat():
         else:
             frame = 6
             CurrentState = "Standing"
+    def Roll(self):
+        global CurrentState
+        if CurrentState == "Rolling":
+            CurrentState = "Walking"
+        else:
+            CurrentState = "Rolling"
     def Chase(self):
         global CurrentState
         if CurrentState == "Chasing":

@@ -10,7 +10,8 @@ The rat will walk around to random locations on your taskbar occastionally do ot
 In the menu actions are activites the rat can do automatically but when activated in the menu it will override the current activity temporary.
 | Action | Description |
 |---------|-------|
-| Walk | When on the rat will walk randomly around the taskbar (Default) |
+| Walk | When on the rat will walk randomly around the taskbar |
+| Roll | When on the rat will roll off the screen before going back to walk |
 | Chase | When on the rat will chase after the mouse cursor till told to stop |
 | Sit | When on the rat will lay on the ground till told otherwise |
 

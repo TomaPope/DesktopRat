@@ -144,8 +144,12 @@ class Rat():
         self.label.bind("<ButtonPress-1>", self.Drag)
         self.label.bind("<ButtonRelease-1>", self.StopDrag)
 
+        #checks if the rat is under the ground
         if y > GroundYPosition:
             y = GroundYPosition
+            
+        
+        #automates actions
         if AutomatedActions == True:
             if self.changeaction <= time.time():
                 self.changeaction = time.time()
@@ -164,7 +168,7 @@ class Rat():
                         frame = 0
                         
                         
-                print(newstate)
+                # print(newstate)
                 
 
         #Walking Function

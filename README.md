@@ -1,6 +1,7 @@
 # Desktop Rat
 
 An adorable rat that walks around and hangs out on your taskbar
+EXE Download: https://tomapope.itch.io/desktop-rat
 
 ## Application
 The rat will walk around to random locations on your taskbar occastionally do other things like chasing your mouse. At any time you can click and hold to pick-up and throw the rat or you can right click the rat to open the menu and play with him. The menu also contains settings and debug information you can use to mess around with.

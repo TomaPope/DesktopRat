@@ -88,7 +88,7 @@ class Rat():
         self.label.pack()
         self.window.after(0, self.update)
         print("Rat Started")
-        print("Version 1.1")
+        print("Version 1.2")
         self.window.mainloop()
 
     #Gravity Functions When Called Causes Gravity
@@ -442,6 +442,6 @@ class Rat():
 
 
 # print("Screen Size: ", monitorwidth)
-# print("Rat Starting...")
+print("Rat Starting...")
 thread1 = threading.Thread(target=Rat)
 thread1.start()

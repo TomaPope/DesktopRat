@@ -48,6 +48,8 @@ newstate = "1"
 LimitedVelocity = True
 AutomatedActions = True
 
+print("Rat Starting...")
+
 # Main Rat Class
 class Rat():
 
@@ -442,6 +444,6 @@ class Rat():
 
 
 # print("Screen Size: ", monitorwidth)
-print("Rat Starting...")
+# print("Rat Starting...")
 thread1 = threading.Thread(target=Rat)
 thread1.start()

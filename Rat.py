@@ -9,6 +9,10 @@ from PIL import Image #PIL
 from screeninfo import get_monitors #ScreenInfo
 import threading #Thread6
 import os
+from PIL import Image, ImageTk
+
+
+Version = "Beta 1.3.1"
 
 
 
@@ -38,11 +42,15 @@ IMGWIDTH = img.width
 
 #states
 CurrentState = "Walking"
+DragState = "Walking"
 MenuOpen = False
 LeastTime = 60
 MostTime = 180
 storedstate = "1"
 newstate = "1"
+
+
+cheesepos = 0
 
 #Settings
 LimitedVelocity = True
@@ -90,7 +98,8 @@ class Rat():
         self.label.pack()
         self.window.after(0, self.update)
         print("Rat Started")
-        print("Version 1.2")
+        global Version
+        print(f"Version {Version}")
         self.window.mainloop()
 
     #Gravity Functions When Called Causes Gravity
@@ -106,7 +115,6 @@ class Rat():
         else:
             Gravity = 0
         return
-    
 
     #Called Every Seconds or So
     def update(self):
@@ -146,7 +154,7 @@ class Rat():
         mousepos = pyautogui.position()
 
         #Calls Stuff INvolving The Mouse
-        self.label.bind("<Button-3>", self.popup)
+        self.label.bind("<Button-2>", self.popup)
         self.label.bind("<ButtonPress-1>", self.Drag)
         self.label.bind("<ButtonRelease-1>", self.StopDrag)
 
@@ -160,7 +168,7 @@ class Rat():
             if self.changeaction <= time.time():
                 self.changeaction = time.time()
                 self.changeaction += random.randrange(LeastTime,MostTime)
-                randomoptions = ["Walking", "Sitting", "Chasing", "Rolling"]
+                randomoptions = ["Walking", "Sitting", "Chasing", "Rolling", "Cheese"]
                 storedstate = CurrentState
                 newstate = random.choice(randomoptions)
                 if storedstate == "Sitting" and newstate != "Sitting":
@@ -280,7 +288,8 @@ class Rat():
             elif Velocity[1] < 0:
                 Velocity[1] += 1
             if y >= GroundYPosition:
-                CurrentState = "Walking"
+                global DragState
+                CurrentState = DragState
 
             # self.VGravity()
 
@@ -331,6 +340,32 @@ class Rat():
                         else:
                             self.img = self.walking_left[self.frame_index]
 
+        #Cheesing Function
+        if CurrentState == "Cheese":
+            self.Gravity()
+            if AutomatedActions == True:
+                AutomatedActions = False
+                thread1 = threading.Thread(target=Cheese)
+                thread1.start()
+                
+            global cheesepos
+            if time.time() > self.timestamp:
+                if cheesepos > x:
+                    LookingRight = True
+                    x += 3
+                elif cheesepos < x:
+                    LookingRight = False
+                    x -= 3
+            
+            #Updates The Rat Image
+            if time.time() > self.timestamp + 0.08:
+                self.timestamp = time.time()
+                # advance the frame by one, wrap back to 0 at the end
+                self.frame_index = (self.frame_index + 1) % 8
+                if LookingRight == True:
+                    self.img = self.walking_right[self.frame_index]
+                else:
+                    self.img = self.walking_left[self.frame_index]
 
         #Sets Window positions and INformation
         self.window.geometry('{width}x{height}+{x}+{y}'.format(x=x, y=y, width=str(img.width), height=str(img.height)))
@@ -369,6 +404,8 @@ class Rat():
             ActionsSub.add_command(label="Stand", command=self.Sit)
         else:
             ActionsSub.add_command(label="Sit", command=self.Sit)
+        #cheese
+        ActionsSub.add_command(label="Summon Cheese", command=self.Cheese)        
         ActionsSub.add_separator()
         
             
@@ -384,13 +421,15 @@ class Rat():
         DebugsSub.add_separator()
         DebugsSub.add_command(label=f"[ Current State: ({CurrentState}) ]")
         DebugsSub.add_command(label=f"[ Current WalkToPosition: ({WalkToPosition}) ]")
+        # if AutomatedActions == True:
+            # DebugsSub.add_command(label=f"[ AutoStates: {int(self.changeaction)}/{int(time.time())}]")
         DebugsSub.add_command(label=f"New Random WalkToPosition", command=self.newposition)
         DebugsSub.add_separator()
         
         #Extra Parts
         my_menu.add_command(label="KILL", command=self.quit)
         my_menu.tk_popup(event.x_root, event.y_root)
-    
+
     #Pop Up Functions
     def newposition(self):
         global WalkToPosition
@@ -433,17 +472,122 @@ class Rat():
         else:
             CurrentState = "Walking"
 
+    def Cheese(self):
+        global CurrentState
+        CurrentState = "Cheese"
+        # thread1 = threading.Thread(target=Cheese)
+        # thread1.start()
+
     #Start/Stop Drag Functions
     def Drag(self, event):
         global CurrentState
+        global DragState
+        DragState = CurrentState
         CurrentState = "Dragging"
     def StopDrag(self, event):
         global CurrentState
+        global DragState
         CurrentState = "Falling"
 
 
+class Cheese():
 
-# print("Screen Size: ", monitorwidth)
-# print("Rat Starting...")
+    def __init__(self):
+        self.grav = 0
+        self.CheeseState = "Normal"
+        global monitorwidth
+        self.window = tk.Toplevel()
+        self.img = [tk.PhotoImage(
+            file="pictures/food.png")]
+        food = Image.open("pictures/food.png")
+        self.window.config(highlightbackground='#418EE4')
+        self.window.overrideredirect(True)
+        self.window.attributes('-topmost', True)
+        self.window.wm_attributes('-transparentcolor', '#418EE4')
+        self.label = tk.Label(self.window, bd=0, bg='#418EE4')
+        global monitorwidth
+        self.x = random.randrange(0, monitorwidth - int(img.width/2))
+        self.y = -1000
+        self.gravy = 0
+        self.window.geometry(
+            '{width}x{height}+{x}+{y}'.format(x=str(self.x), y=str(self.y), width=str(food.width), height=str(food.height)))
+        self.label.configure(image=self.img)
+        self.label.pack()
+        self.window.after(0, self.update)
+        # self.window.mainloop()
+        self.personalallowrandom = True
+        self.gp = 0
+
+    def gravity(self):
+        if self.y >= self.gp:
+            self.y = self.gp
+            self.grav = 0
+        else:
+            self.y += self.grav
+            self.grav += 1
+        
+        return
+
+
+    def update(self):
+        food = Image.open("pictures/food.png")
+        
+        user32 = ctypes.windll.user32
+        screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+        monitor_info = GetMonitorInfo(MonitorFromPoint((0, 0)))
+        monitor_area = monitor_info.get("Monitor")
+        work_area = monitor_info.get("Work")
+        GroundYPosition = int(screensize[1] - food.height - (monitor_area[3]-work_area[3]))
+        self.gp = GroundYPosition
+        UnderYPosition = int(screensize[1] - (monitor_area[3]-work_area[3]))
+        
+        mousepos = pyautogui.position()
+
+        self.label.bind("<ButtonPress-1>", self.Drag)
+        self.label.bind("<ButtonRelease-1>", self.StopDrag)
+        
+        if self.y < -200:
+            self.y = screensize[1]
+            self.grav = 0
+        
+        if self.y < GroundYPosition and self.CheeseState != "Dragging":
+            self.gravity()
+        else:
+            self.grav = 0
+            
+        if self.y > GroundYPosition:
+            self.y -= 1
+
+            
+        global cheesepos
+        cheesepos = self.x
+        
+        if self.CheeseState == "Dragging":
+            self.x = mousepos.x - int(food.width/2)
+            self.y = mousepos.y - int(food.height/2)    
+            
+            global x
+            global CurrentState
+            global AutomatedActions
+            
+        if x > cheesepos -5 and x < cheesepos + 5 and CurrentState == "Cheese" and self.CheeseState != "Dragging":
+            CurrentState = "Walking"
+            AutomatedActions = True
+            self.window.destroy()
+        else:
+                # Windows Settings
+            self.window.geometry(
+                        '{width}x{height}+{x}+{y}'.format(x=self.x, y=self.y, width=str(food.width), height=str(food.height)))
+            self.label.configure(image=self.img)
+            self.label.pack()
+            self.window.after(10, self.update)
+                
+    def Drag(self, event):
+        self.CheeseState = "Dragging"
+    def StopDrag(self, event):
+        self.CheeseState = "Normal"
+
 thread1 = threading.Thread(target=Rat)
 thread1.start()
+
+

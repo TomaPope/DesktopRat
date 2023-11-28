@@ -1,4 +1,6 @@
 import tkinter as tk
+from tkinter import ttk
+import ctypes
 import time
 import random
 from turtle import screensize
@@ -8,12 +10,13 @@ from win32api import GetMonitorInfo, MonitorFromPoint #pywin23
 from PIL import Image #PIL
 from screeninfo import get_monitors #ScreenInfo
 import threading #Thread6
-import os
 from PIL import Image, ImageTk
+import os
 
 
-Version = "Beta 1.3.1"
+Version = "Beta 1.3.2"
 
+mass = None
 
 
 #ScreenStuff
@@ -62,10 +65,10 @@ print("Rat Starting...")
 class Rat():
 
     #Runs On Start
-    def __init__(self):
+    def __init__(self, window):
         #Sets the Window and image
-        self.window = tk.Tk()
-        # self.window = tk.Tk()
+        
+        self.window = window
         self.roll_index = 0
         self.Rolling = [tk.PhotoImage(
             file="pictures/RatRoll.gif", format='gif -index %i' % (i)) for i in range(4)]
@@ -90,6 +93,9 @@ class Rat():
         self.window.overrideredirect(True)
         self.window.attributes('-topmost', True)
         self.window.wm_attributes('-transparentcolor', '#418EE4')
+        # notebook_style = ttk.Style()
+        # notebook_style.configure("TNotebook", background="#638")
+        # notebook_style.configure("TNotebook.Tab", background="#263", padding=[10, 5], font=('Helvetica', 10))
         self.label = tk.Label(self.window, bd=0, bg='#418EE4')
         #Finalizes Window
         self.x = 0
@@ -99,8 +105,7 @@ class Rat():
         self.window.after(0, self.update)
         print("Rat Started")
         global Version
-        print(f"Version {Version}")
-        self.window.mainloop()
+        print(f"Version: {Version}")
 
     #Gravity Functions When Called Causes Gravity
     def Gravity(self):
@@ -155,6 +160,7 @@ class Rat():
 
         #Calls Stuff INvolving The Mouse
         self.label.bind("<Button-2>", self.popup)
+        self.label.bind("<Button-3>", self.dis)
         self.label.bind("<ButtonPress-1>", self.Drag)
         self.label.bind("<ButtonRelease-1>", self.StopDrag)
 
@@ -478,6 +484,12 @@ class Rat():
         # thread1 = threading.Thread(target=Cheese)
         # thread1.start()
 
+    def dis(self, event):
+        # thread1 = threading.Thread(target=Display)
+        # thread1.start()
+        pass
+        # Display()
+
     #Start/Stop Drag Functions
     def Drag(self, event):
         global CurrentState
@@ -587,7 +599,73 @@ class Cheese():
     def StopDrag(self, event):
         self.CheeseState = "Normal"
 
-thread1 = threading.Thread(target=Rat)
-thread1.start()
+class Display():
+
+    def __init__(self):
+        master = tk.Toplevel()
+        
+        self.master = master
+        # self.master.title("Styled Notebook App")
+
+        # Create a styled notebook
+        self.notebook_style = ttk.Style()
+        self.notebook_style.configure("TNotebook", background="#638")
+        self.notebook_style.configure("TNotebook.Tab", background="#263", padding=[10, 5], font=('Helvetica', 10))
+
+        self.notebook = ttk.Notebook(self.master, style="TNotebook")
+
+        # Create tabs for the notebook
+        tab1 = tk.Frame(self.notebook, background="#ececec")
+        tab2 = tk.Frame(self.notebook, background="#ececec")
+
+        self.notebook.add(tab1, text="Tab 1")
+        self.notebook.add(tab2, text="Tab 2")
+
+        # Pack the notebook
+        self.notebook.pack(expand=1, fill="both")
+        self.master.geometry("300x150")
+        self.master.mainloop()
+    
+    # def __init__(self):
+        
+    #     root = tk.Tk()
+    #     root.title("Styled Notebook Tabs")
+
+    #     # Create a style for the notebook tabs
+
+    #     # Create a notebook widget
+    #     notebook = ttk.Notebook(root)
+
+    #     # Create tabs with the specified names
+    #     tab = ttk.Frame(notebook)
+    #     notebook.add(tab, text="tes")
+
+    #     notebook.pack(expand=1, fill="both")
+
+        # self.tabholder = Notebook(self.window)
+        # self.tabholder.pack(side="top", expand=True, fill="both")
+        # self.Tab1 = Frame(self.tabholder)
+        # self.Tab1.configure(background="#637")
+        # self.Tab2 = Frame(self.tabholder)
+        # self.tabholder.add(self.Tab1, text="Test")
+        # self.tabholder.add(self.Tab2, text="Test2")
+        # self.tabholder.configure()
+        # self.tabholder.pack(expand = 1, fill=BOTH)
+
+        # button31=tk.Button(self.window, text="Ball", width = 6)
+        # button31.grid(row=2,column=0, padx=5)
+        # button32=tk.Button(self.window, text="Chase", width = 6, anchor='center')
+        # button32.grid(row=2,column=2, pady=5)
+        # button33=tk.Button(self.window, text="Stay", width = 6)
+        # button33.grid(row=2,column=3, padx=5)
+        # self.window.pack()
+        
+        
+    
+
+
+window = tk.Tk()
+app = Rat(window)
+window.mainloop()
 
 

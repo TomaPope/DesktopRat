@@ -15,10 +15,13 @@ import os
 from tkinter import colorchooser
 
 
+Version = "PreRelease 1.2.1"
 
-Version = "1.2"
+mass = None
+
+menuopen = False
+
 app = None
-
 #ScreenStuff
 monitorwidth = 0
 tempm = 0
@@ -36,78 +39,58 @@ speed = 0.08
 Gravity = 0
 GroundYPosition = 0
 Velocity = [0,0]
-cheesepos = 0
 
 #Image Stuff
 frame = 5
 img = Image.open("pictures/ratwalk.gif")
 IMGHEIGHT = img.height
 IMGWIDTH = img.width
-BlackOTLN = False
 
 #states
 CurrentState = "Walking"
 DragState = "Walking"
+# MenuOpen = False
 LeastTime = 60
 MostTime = 180
 storedstate = "1"
 newstate = "1"
-menuopen = False
+
+
+cheesepos = 0
 
 #Settings
 LimitedVelocity = True
 VelocityLimit = 40
 AutomatedActions = True
 
-Default = [(64, 64, 64),(48, 48, 48),(24, 24, 24),(128, 128, 128),
-                 (255, 158, 221),(188, 139, 171),(188, 146, 173),(130, 104, 121)]
-
-#Colors
-Gray = [(64, 64, 64),(48, 48, 48),(24, 24, 24),(128, 128, 128),
-                 (255, 158, 221),(188, 139, 171),(188, 146, 173),(130, 104, 121)]
-Brown = [(122, 88, 68),(98, 72, 57),(82, 58, 43),(29, 7, 3),
-                 (181, 129, 119),(172, 122, 113),(160, 109, 99),(143, 89, 79)]
-White = [(210, 210, 210), (183, 183, 183), (151, 151, 151), (0, 0, 0),
-                 (255, 158, 221),(188, 139, 171),(188, 146, 173),(130, 104, 121)]
-Remy = [(81, 125, 174), (75, 100, 158), (66, 87, 138), (222, 141, 103),
-                 (255, 158, 221), (188, 139, 171), (188, 146, 173),(130, 104, 121)]
-
-CurrentColor = Default.copy()
-
-NewCo = Default.copy()
-
 print("Rat Starting...")
 
 # Main Rat Class
-def rgb_to_hex(rgb):
-    return "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
-
 class Rat():
     
+    
+    def rgb_to_hex(self, rgb):
+        return "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
+    
     def AniColor(self, frames, image):
-        global CurrentColor
-        global NewCo
-        global Default
-        global Brown
-        global BlackOTLN
         for f in range(frames):
+            # print(f)
             for x in range(IMGWIDTH):
                 for y in range(IMGHEIGHT):
                     # Get the current pixel's color
                     pixel = image[f].get( x, y)
                     for c in range(8):
-                        if str(pixel) == str(Default[c]):
-                            color = rgb_to_hex(NewCo[c])
+                        if str(pixel) == str(self.Default[c]):
+                        # print("tets")
+                            color =self.rgb_to_hex(self.Brown[c])
                             image[f].put(color ,(x, y))
-                        # print(pixel)
-                        if str(pixel) == "(255, 255, 255)" and BlackOTLN:
-                            # print("test")
-                            color = "#000000"
-                            image[f].put(color ,(x, y))
-        CurrentColor = NewCo.copy()       
     
     def SetColor(self):
         
+        self.Default = [(64, 64, 64),(48, 48, 48),(24, 24, 24),(128, 128, 128),
+                 (255, 158, 221),(188, 139, 171),(188, 146, 173),(130, 104, 121)]
+        self.Brown = [(122, 88, 68),(98, 72, 57),(82, 58, 43),(29, 7, 3),
+                 (181, 129, 119),(172, 122, 113),(160, 109, 99),(143, 89, 79)]
         
         self.Rolling = [tk.PhotoImage(
             file="pictures/RatRoll.gif", format='gif -index %i' % (i)) for i in range(4)]
@@ -128,7 +111,6 @@ class Rat():
         self.laying = [tk.PhotoImage(
             file="pictures/layingdown.gif", format='gif -index %i' % (i)) for i in range(6)]
         self.AniColor(6, self.laying)
-    
         return
 
     #Runs On Start
@@ -165,6 +147,8 @@ class Rat():
         self.window.after(0, self.update)
         
         print("Rat Started")
+        global Version
+        print(f"Version: {Version}")
         # Display()
 
     #Gravity Functions When Called Causes Gravity
@@ -248,6 +232,7 @@ class Rat():
                         frame = 0
                         
                         
+                # print(newstate)
                 
         #Walking Function
         if CurrentState == "Walking":
@@ -255,13 +240,19 @@ class Rat():
             if time.time() > self.timestamp + speed:
                 if WalkToPosition == None:
                     WalkToPosition = random.randrange(0, monitorwidth - int(IMGWIDTH/2))
+                    # print("Going To Position:" , WalkToPosition)
                 if WalkToPosition > x:
                     LookingRight = True
                     x += 1
                 elif WalkToPosition < x:
                     LookingRight = False
                     x -= 1
-
+                # if x <= 0 - 110 or x >= monitorwidth + 110:
+                #     WalkToPosition = None
+                #     # global PipeThread
+                #     PipeThread = threading.Thread(target=MarioPipe)
+                #     PipeThread.start()
+                #     CurrentState = "Piping"
 
 
                 elif x >= WalkToPosition - 5 and x <= WalkToPosition + 5:
@@ -290,6 +281,7 @@ class Rat():
 
         #Dragging Function
         if CurrentState == "Dragging":
+            # print(mousepos)
             global VelocityLimit
             TempVelocity = [x,y]
             x = mousepos.x - int(IMGWIDTH/2)
@@ -304,6 +296,7 @@ class Rat():
                     Velocity[1] = VelocityLimit
                 if Velocity[1] < -VelocityLimit:
                     Velocity[1] = -VelocityLimit
+            # print(Velocity)
 
         
             if time.time() > self.timestamp + 0.05:
@@ -349,21 +342,25 @@ class Rat():
                 global DragState
                 CurrentState = DragState
 
+            # self.VGravity()
 
         #Laying Down Function
         if CurrentState == "Sitting":
             if time.time() > self.timestamp + 0.1: 
                 self.timestamp = time.time()
                     # advance the frame by one, wrap back to 0 at the end
-                self.img = self.laying[frame]
-                if frame < 5:
-                    frame += 1
+                frame += 1
+                # print(frame)
+                if frame <= 5:
+                    # print(frame)
+                    self.img = self.laying[frame]
         #Stinding Up Function
         if CurrentState == "Standing":
             if time.time() > self.timestamp + 0.1: 
                 self.timestamp = time.time()
                     # advance the frame by one, wrap back to 0 at the end
                 frame -= 1
+                # print(frame)
                 if frame >= 0:
                     self.img = self.laying[frame]
                 else:
@@ -461,7 +458,8 @@ class Rat():
         #cheese
         ActionsSub.add_command(label="Summon Cheese", command=self.Cheese)        
         ActionsSub.add_separator()
-              
+        
+            
         # #Settings
         # my_menu.add_cascade(label="Settings", menu=SettingsSub)
         # SettingsSub.add_separator()
@@ -528,7 +526,13 @@ class Rat():
     def Cheese(self):
         global CurrentState
         CurrentState = "Cheese"
+        # thread1 = threading.Thread(target=Cheese)
+        # thread1.start()
+
     def dis(self, event):
+        # thread1 = threading.Thread(target=Display)
+        # thread1.start()
+        # pass
         global menuopen
         if menuopen == False:
             menuopen = True
@@ -585,6 +589,7 @@ class Cheese():
             self.grav += 1
         
         return
+
 
     def update(self):
         food = Image.open("pictures/food.png")
@@ -655,45 +660,36 @@ class Display():
         self.CSMNT.grid(row=0, column=1, sticky=tk.NSEW)
         ttk.Separator(self.DBug).grid(row=1, column=1, sticky=tk.NSEW)
         
-        WTLABEL = tk.Label(self.DBug, text="Walk-To-Position:")
-        WTLABEL.grid(row=2, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.DBug).grid(row=3, column=0, sticky=tk.NSEW)
-        self.WTMNT = tk.Label(self.DBug, text="12")
-        self.WTMNT.grid(row=2, column=1, sticky=tk.NSEW)
-        ttk.Separator(self.DBug).grid(row=3, column=1, sticky=tk.NSEW)
-
         CPLABEL = tk.Label(self.DBug, text="Current Position:")
-        CPLABEL.grid(row=4, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.DBug).grid(row=5, column=0, sticky=tk.NSEW)
+        CPLABEL.grid(row=2, column=0, sticky=tk.NSEW)
+        ttk.Separator(self.DBug).grid(row=3, column=0, sticky=tk.NSEW)
         self.CPMNT = tk.Label(self.DBug, text="12")
-        self.CPMNT.grid(row=4, column=1, sticky=tk.NSEW)
-        ttk.Separator(self.DBug).grid(row=5, column=1, sticky=tk.NSEW)
-
-        MPLABEL = tk.Label(self.DBug, text="Mouse Position:")
-        MPLABEL.grid(row=6, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.DBug).grid(row=7, column=0, sticky=tk.NSEW)
-        self.MPMNT = tk.Label(self.DBug, text="12")
-        self.MPMNT.grid(row=6, column=1, sticky=tk.NSEW)
-        ttk.Separator(self.DBug).grid(row=7, column=1, sticky=tk.NSEW)
+        self.CPMNT.grid(row=2, column=1, sticky=tk.NSEW)
+        ttk.Separator(self.DBug).grid(row=3, column=1, sticky=tk.NSEW)
         
+        WTLABEL = tk.Label(self.DBug, text="Walk-To-Position:")
+        WTLABEL.grid(row=4, column=0, sticky=tk.NSEW)
+        ttk.Separator(self.DBug).grid(row=5, column=0, sticky=tk.NSEW)
+        self.WTMNT = tk.Label(self.DBug, text="12")
+        self.WTMNT.grid(row=4, column=1, sticky=tk.NSEW)
+        ttk.Separator(self.DBug).grid(row=5, column=1, sticky=tk.NSEW)
         return
         
     def STTab(self):
-        global LimitedVelocity
-        global VelocityLimit
-        global AutomatedActions
-
+        
         #Setting Variables
+        LVSub = tk.BooleanVar()
+        LVSub.set(LimitedVelocity)
         LVMT = tk.IntVar()
         LVMT.set(VelocityLimit)
-
+        AASub = tk.BooleanVar()
+        AASub.set(AutomatedActions)
         #Settings Stuff
         LTVLabel = tk.Label(self.Sett, text="Limit Throw Velocity")
         LTVLabel.grid(row=0, column=0, sticky=tk.NSEW)
         ttk.Separator(self.Sett).grid(row=1, column=0, sticky=tk.NSEW)
         
-        LTVCheck = tk.Checkbutton(self.Sett, command=self.LMTV)
-        LTVCheck.select()
+        LTVCheck = tk.Checkbutton(self.Sett, variable=LVSub, command=self.LMTVEL)
         LTVCheck.grid(row=0, column=1, sticky=tk.NSEW)
         ttk.Separator(self.Sett).grid(row=1, column=1, sticky=tk.NSEW)
         
@@ -711,8 +707,7 @@ class Display():
         AALabel.grid(row=5, column=0, sticky=tk.NSEW)
         ttk.Separator(self.Sett).grid(row=6, column=0, sticky=tk.NSEW)
         
-        AACheck = tk.Checkbutton(self.Sett,command=self.AA)
-        AACheck.select()
+        AACheck = tk.Checkbutton(self.Sett, variable=AASub)
         AACheck.grid(row=5, column=1, sticky=tk.NSEW)
         ttk.Separator(self.Sett).grid(row=6, column=1, sticky=tk.NSEW)
         
@@ -720,146 +715,28 @@ class Display():
         killLabel.grid(row=7, column=0, sticky=tk.NSEW)
         ttk.Separator(self.Sett).grid(row=8, column=0, sticky=tk.NSEW)
         
-    def CTab(self):
-        global Default
-        global Brown
-
-        self.Apply = tk.Button(self.Colors, text="Reset", command=self.Reset)
-        self.Apply.grid(row=0, column=0, sticky=tk.NSEW)
-
-        self.Apply = tk.Button(self.Colors, text="Apply", command=self.ApplyCo)
-        self.Apply.grid(row=0, column=2, sticky=tk.NSEW)
+        # AALabel = tk.Label(self.Sett, text="Automate Actions")
+        # AALabel.grid(row=7, column=0, sticky=tk.N)
+        # ttk.Separator(self.Sett).grid(row=8, column=0, sticky=tk.N)
         
-        #Fur Colors
-        tk.Label(self.Colors, text="Fur Color 1: ", width=12).grid(row=2, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=3, column=0, sticky=tk.NSEW)
-        self.Fc1 = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[0]), text="", command=lambda: self.pick_color(0, self.Fc1), width=1)
-        self.Fc1.grid(row=2, column=1, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=3, column=1, sticky=tk.NSEW)
-        tk.Label(self.Colors, text="Fur Color 2: ").grid(row=4, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=5, column=0, sticky=tk.NSEW)
-        self.Fc2 = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[1]), text="", command=lambda: self.pick_color(1, self.Fc2))
-        self.Fc2.grid(row=4, column=1, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=5, column=1, sticky=tk.NSEW)
-        tk.Label(self.Colors, text="Fur Color 3: ").grid(row=6, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=7, column=0, sticky=tk.NSEW)
-        self.Fc3 = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[2]), text="", command=lambda: self.pick_color(2, self.Fc3))
-        self.Fc3.grid(row=6, column=1, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=7, column=1, sticky=tk.NSEW) 
-        tk.Label(self.Colors, text="Eye Color: ").grid(row=8, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=9, column=0, sticky=tk.NSEW)
-
-        #Eye Colors
-        self.Ec = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[3]), text="", command=lambda: self.pick_color(3, self.Ec))
-        self.Ec.grid(row=8, column=1, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=9, column=1, sticky=tk.NSEW) 
-
-        #Ear Colors
-        tk.Label(self.Colors, text="Ear/Nose Color: ", width=12).grid(row=2, column=2, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=3, column=2, sticky=tk.NSEW)
-        self.Erc = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[4]), text="", command=lambda: self.pick_color(4, self.Erc), width=1)
-        self.Erc.grid(row=2, column=3, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=3, column=3, sticky=tk.NSEW)
-
-        # Tail Color
-        tk.Label(self.Colors, text="Tail Color: ").grid(row=4, column=2, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=5, column=2, sticky=tk.NSEW)
-        self.Tc = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[5]), text="", command=lambda: self.pick_color(5, self.Tc))
-        self.Tc.grid(row=4, column=3, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=5, column=3, sticky=tk.NSEW)
-
-        # Feet Color
-        tk.Label(self.Colors, text="Feet Color 1: ").grid(row=6, column=2, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=7, column=2, sticky=tk.NSEW)
-        self.Ftc1 = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[6]), text="", command=lambda: self.pick_color(6, self.Ftc1))
-        self.Ftc1.grid(row=6, column=3, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=7, column=3, sticky=tk.NSEW)
-
-        tk.Label(self.Colors, text="Feet Color 2: ").grid(row=8, column=2, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=9, column=2, sticky=tk.NSEW)
-        self.Ftc2 = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[7]), text="", command=lambda: self.pick_color(7, self.Ftc2))
-        self.Ftc2.grid(row=8, column=3, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=9, column=3, sticky=tk.NSEW)
-        
-        tk.Label(self.Colors, text="Black Outline: ").grid(row=10, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=11, column=2, sticky=tk.NSEW)
-        global BlackOTLN
-        self.IsBlack = tk.Checkbutton(self.Colors, variable=False, command=self.BLKOLN)
-        # self.IsBlack.select()
-        self.IsBlack.grid(row=10, column=2, sticky=tk.NSEW)
-        ttk.Separator(self.Colors).grid(row=11, column=2, sticky=tk.NSEW)
-
-        tk.Label(self.Colors, text="Preset Colors: ").grid(row=12, column=0, sticky=tk.NSEW)
-
-        optionList = ('Gray', 'Brown', 'White', "Remy")
-        self.v = tk.StringVar()
-        self.v.set(optionList[0])
-        self.om = tk.OptionMenu(self.Colors, self.v, *optionList, command=self.ReFresh)
-        self.om.grid(row=12, column=2, sticky=tk.NSEW)
-
-
-
-    def pick_color(self, btnid, btn):
-        global CurrentColor
-        global NewCo
-        global Default
-        global Brown
+    def pick_color(self, btn):
+        print(btn)
         color = colorchooser.askcolor(title="Choose a color")
         if color[1]:  # Check if a color was chosen (not canceled)
-            NewCo[btnid] = color[0]
-
-            btn.config(bg=color[1])
-            
+            print(color)
+            print(color[1])
+            if btn == "Fc1":
+                self.f.config(bg="orange")
+                
+        # AACheck = tk.Checkbutton(self.Sett, variable=AASub)
+        # AACheck.grid(row=7, column=1, sticky=tk.N)
+        # ttk.Separator(self.Sett).grid(row=8, column=1, sticky=tk.N)
         return
 
-    def ApplyCo(self):
-        global app
-        global NewCo
-        # print(NewCo)
-        app.SetColor()
-
-    def Reset(self):
-        print('test')
-        global CurrentColor
-        global Default
-        global NewCo
-        print(CurrentColor)
-        print(NewCo)
-        for c in range(8):
-            NewCo[c] = CurrentColor[c]
-        self.Fc1.config(bg=rgb_to_hex(CurrentColor[0]))
-        self.Fc2.config(bg=rgb_to_hex(CurrentColor[1]))
-        self.Fc3.config(bg=rgb_to_hex(CurrentColor[2]))
-        self.Ec.config(bg=rgb_to_hex(CurrentColor[3]))
-        self.Erc.config(bg=rgb_to_hex(CurrentColor[4]))
-        self.Tc.config(bg=rgb_to_hex(CurrentColor[5]))
-        self.Ftc1.config(bg=rgb_to_hex(CurrentColor[6]))
-        self.Ftc2.config(bg=rgb_to_hex(CurrentColor[7])) 
-
-    def ReFresh(self, g):
-        global CurrentColor
-        global Default
-        global NewCo
-        for c in range(8):
-            if self.v.get() == "Gray":
-                NewCo[c] = Gray[c]
-            if self.v.get() == "Brown":
-                NewCo[c] = Brown[c]
-            if self.v.get() == "White":
-                NewCo[c] = White[c]
-            if self.v.get() == "Remy":
-                NewCo[c] = Remy[c]
-        self.Fc1.config(bg=rgb_to_hex(NewCo[0]))
-        self.Fc2.config(bg=rgb_to_hex(NewCo[1]))
-        self.Fc3.config(bg=rgb_to_hex(NewCo[2]))
-        self.Ec.config(bg=rgb_to_hex(NewCo[3]))
-        self.Erc.config(bg=rgb_to_hex(NewCo[4]))
-        self.Tc.config(bg=rgb_to_hex(NewCo[5]))
-        self.Ftc1.config(bg=rgb_to_hex(NewCo[6]))
-        self.Ftc2.config(bg=rgb_to_hex(NewCo[7]))
-
-
     def __init__(self):
+        global LimitedVelocity
+        global VelocityLimit
+        global AutomatedActions
         
         #sets up Window
         master = tk.Toplevel()
@@ -891,10 +768,10 @@ class Display():
 
         self.test = tk.Frame(self.notebook, background="#f0f0f0")
         
-        self.Colors = tk.Frame(self.notebook, background="#f0f0f0")
+        self.Colors = tk.Frame(self.notebook, background="aqua")
         self.Colors.pack(expand=True, fill="both")
         self.Colors.rowconfigure(100, weight=1)
-        self.Colors.columnconfigure(3, weight=1)
+        self.Colors.columnconfigure(1, weight=1)
         
         # Create tabs for the notebook
         self.notebook.add(self.Sett, text="Settings")
@@ -905,25 +782,27 @@ class Display():
         
         self.DBTab()
         self.STTab()
-        self.CTab()
 
-        global x
-        global y
-        self.x = x
-        self.y = y
-
-        if self.x <= 80:
-            self.x = 100
-
-        global monitorwidth
-        if self.x >= monitorwidth-230:
-            self.x = monitorwidth-300
+        
+        tk.Label(self.Colors, text="Fur Color 1: ").grid(row=0, column=0, sticky=tk.NSEW)
+        ttk.Separator(self.Colors).grid(row=1, column=0, sticky=tk.NSEW)
+        
+        # self.Fc1 = tk.Button(self.Colors,background="red", text=" ")
+        self.FC1 = tk.Button(self.Colors,background="red", text=" ", command=lambda: self.pick_color("Fc1")).grid(row=0, column=1, sticky=tk.NSEW)
+        ttk.Separator(self.Colors).grid(row=1, column=1, sticky=tk.NSEW)
+        
+        self.f = tk.Label(self.Colors, text="test", bg="red").grid(row=2, column=0, sticky=tk.NSEW)
+        ttk.Separator(self.Colors).grid(row=3, column=0, sticky=tk.NSEW)
+        # tk.Checkbutton(self.Sett, variable=LVSub, command=self.LMTVEL).grid(row=0, column=1, sticky=tk.NSEW)
+        # ttk.Separator(self.Sett).grid(row=1, column=1, sticky=tk.NSEW)
         
 
         # Pack the notebook
         self.notebook.pack(expand=1, fill="both")
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_select)
         self.master.geometry("180x165")
+        # self.master.geometry("180x200")
+        # self.master.geometry("380x200")
         self.master.after(10, self.update)
         self.master.mainloop()
         
@@ -931,6 +810,7 @@ class Display():
         global app
         app.quit()
     def on_tab_select(self, event):
+        # print("test")
         selected_tab = self.notebook.index(self.notebook.select())
 
         if selected_tab == 3:
@@ -942,40 +822,29 @@ class Display():
     def LVMT(self, var):
         global VelocityLimit
         VelocityLimit = int(var)
-    def SWT(self, variable):
-        print("Swi")
-        print(variable)
-        variable = not variable
-        print(variable)
-    def LMTV(self):
+        # print(var)
+
+    def LMTVEL(self):
         global LimitedVelocity
         LimitedVelocity = not LimitedVelocity
-    def AA(self):
-        global AutomatedActions
-        AutomatedActions = not AutomatedActions
-    def BLKOLN(self):
-        global BlackOTLN
-        BlackOTLN = not BlackOTLN
-        # print(BlackOTLN)
-        
 
     def update(self):
         global menuopen
+        global x
+        global y
         global CurrentState
         global WalkToPosition
         global VelocityLimit
-        mousepos = pyautogui.position()
-        
-        #debugs
         self.LTVAMT.configure(text=f"{VelocityLimit}")
         self.CSMNT.configure(text=f"{CurrentState}")
         self.WTMNT.configure(text=f"{WalkToPosition}")
         self.CPMNT.configure(text=f"({x} , {y})")
-        self.MPMNT.configure(text=f"({mousepos.x} , {mousepos.y})")
         
         self.master.lift()
-        self.master.geometry('{width}x{height}+{x}+{y}'.format(x=self.x+int(img.width/2) - 90 , y=self.y-260, width=str(220), height=str(230)))
+
+        self.master.geometry('{width}x{height}+{x}+{y}'.format(x=x+int(img.width/2) - 90 , y=y-170, width=str(220), height=str(160)))
         self.master.after(10, self.update)
+        
         
         if menuopen == False:
             self.master.destroy()
@@ -983,7 +852,6 @@ class Display():
     
 
 # Display()
-print(f"Version: {Version}")
 window = tk.Tk()
 app = Rat(window)
 window.mainloop()

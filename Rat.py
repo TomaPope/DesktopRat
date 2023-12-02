@@ -928,8 +928,7 @@ class Display():
         self.master.mainloop()
         
     def kill(self):
-        global app
-        app.quit()
+        quit()
     def on_tab_select(self, event):
         selected_tab = self.notebook.index(self.notebook.select())
 

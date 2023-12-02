@@ -16,7 +16,7 @@ from tkinter import colorchooser
 
 
 
-Version = "1.2"
+Version = "1.2.1"
 app = None
 
 #ScreenStuff
@@ -682,6 +682,13 @@ class Display():
         global LimitedVelocity
         global VelocityLimit
         global AutomatedActions
+        
+        # LMV = 0
+        # if LimitedVelocity:
+        #     LMV = 1
+        
+        LMV = tk.IntVar()
+        LMV.set(LimitedVelocity)
 
         #Setting Variables
         LVMT = tk.IntVar()
@@ -693,7 +700,9 @@ class Display():
         ttk.Separator(self.Sett).grid(row=1, column=0, sticky=tk.NSEW)
         
         LTVCheck = tk.Checkbutton(self.Sett, command=self.LMTV)
-        LTVCheck.select()
+        if LimitedVelocity:
+            LTVCheck.select()
+        # LTVCheck.config(variable=LimitedVelocity)
         LTVCheck.grid(row=0, column=1, sticky=tk.NSEW)
         ttk.Separator(self.Sett).grid(row=1, column=1, sticky=tk.NSEW)
         
@@ -712,7 +721,9 @@ class Display():
         ttk.Separator(self.Sett).grid(row=6, column=0, sticky=tk.NSEW)
         
         AACheck = tk.Checkbutton(self.Sett,command=self.AA)
-        AACheck.select()
+        if AutomatedActions:
+            AACheck.select()
+        # AACheck.config(variable=AutomatedActions)
         AACheck.grid(row=5, column=1, sticky=tk.NSEW)
         ttk.Separator(self.Sett).grid(row=6, column=1, sticky=tk.NSEW)
         
@@ -785,7 +796,8 @@ class Display():
         ttk.Separator(self.Colors).grid(row=11, column=2, sticky=tk.NSEW)
         global BlackOTLN
         self.IsBlack = tk.Checkbutton(self.Colors, variable=False, command=self.BLKOLN)
-        # self.IsBlack.select()
+        # if BlackOTLN == True:
+            # self.IsBlack.config(variable=True)
         self.IsBlack.grid(row=10, column=2, sticky=tk.NSEW)
         ttk.Separator(self.Colors).grid(row=11, column=2, sticky=tk.NSEW)
 

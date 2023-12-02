@@ -11,7 +11,7 @@ from PIL import Image #PIL
 from screeninfo import get_monitors #ScreenInfo
 import threading #Thread6
 from PIL import Image, ImageTk
-import os
+import sys
 from tkinter import colorchooser
 
 
@@ -928,7 +928,7 @@ class Display():
         self.master.mainloop()
         
     def kill(self):
-        exit()
+        sys.exit()
     def on_tab_select(self, event):
         selected_tab = self.notebook.index(self.notebook.select())
 

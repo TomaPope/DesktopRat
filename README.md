@@ -1,4 +1,4 @@
-# Desktop Rat
+# Desktop Rat Current Dev Build
 
 An adorable rat that walks around and hangs out on your taskbar     
 EXE Download: https://tomapope.itch.io/desktop-rat

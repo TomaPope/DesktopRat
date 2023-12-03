@@ -1,22 +1,32 @@
 import tkinter as tk
-from tkinter import colorchooser
+import tkinter.ttk as ttk
 
-def pick_color():
-    color = colorchooser.askcolor(title="Choose a color")
-    if color[1]:  # Check if a color was chosen (not canceled)
-        color_label.config(text=f"Selected Color: {color[1]}", bg=color[1])
-
-# Create the main window
 root = tk.Tk()
-root.title("Color Picker")
+root.geometry('%dx%d+0+0' %(200,200))
+# Style  # 68485915
+style = ttk.Style()
+ 
+COLOR_GREEN = "#26d663"
+COLOR_RED = "#dd0202"
 
-# Create a button to launch the color picker dialog
-color_button = tk.Button(root, text="Pick a Color", command=pick_color)
-color_button.pack(pady=10)
+style.theme_create("yummy", parent="alt", settings={
+    "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0] } },
+    "TNotebook.Tab": {
+    "configure": {"padding": [5, 1], "background": COLOR_GREEN},
+    "map":       {"background": [("selected", COLOR_RED)],
+    "expand": [("selected", [1, 1, 1, 0])] } } } )
 
-# Create a label to display the selected color
-color_label = tk.Label(root, text="Selected Color: None", padx=10, pady=5)
-color_label.pack()
+style.theme_use("yummy")
 
-# Start the Tkinter event loop
+ 
+# Create Notebook and Frames
+Book = ttk.Notebook(root)
+
+aFrame = ttk.Frame(Book)
+Book.add(aFrame, text = 'A')
+bFrame = ttk.Frame(Book) #/18855943/
+Book.add(bFrame, text = 'B')
+Book.pack(fill = tk.BOTH, expand = True)
+  
+
 root.mainloop()

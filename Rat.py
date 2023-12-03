@@ -12,11 +12,12 @@ from screeninfo import get_monitors #ScreenInfo
 import threading #Thread6
 from PIL import Image, ImageTk
 import sys
+import os
 from tkinter import colorchooser
+import pickle
 
 
-
-Version = "1.2.1"
+Version = "1.2.2"
 app = None
 
 #ScreenStuff
@@ -59,8 +60,30 @@ LimitedVelocity = True
 VelocityLimit = 40
 AutomatedActions = True
 
-Default = [(64, 64, 64),(48, 48, 48),(24, 24, 24),(128, 128, 128),
+DefaultSET = [(64, 64, 64),(48, 48, 48),(24, 24, 24),(128, 128, 128),
                  (255, 158, 221),(188, 139, 171),(188, 146, 173),(130, 104, 121)]
+
+# with open('pictures\DefaultColor.pkl', 'wb') as file:
+#     pickle.dump(Default, file)
+
+# Read the data from the file
+Default = None
+
+if os.path.exists("pictures\DefaultColor.pkl"):
+    with open('pictures\DefaultColor.pkl', 'rb') as file:
+        loaded_data = pickle.load(file)
+    Default = loaded_data
+else:
+    with open('pictures\DefaultColor.pkl', 'wb') as file:
+        pickle.dump(DefaultSET, file)
+    with open('pictures\DefaultColor.pkl', 'rb') as file:
+        loaded_data = pickle.load(file)
+        Default = loaded_data
+        
+# print(Default)
+
+# Print the loaded data
+
 
 #Colors
 Gray = [(64, 64, 64),(48, 48, 48),(24, 24, 24),(128, 128, 128),
@@ -96,7 +119,7 @@ class Rat():
                     # Get the current pixel's color
                     pixel = image[f].get( x, y)
                     for c in range(8):
-                        if str(pixel) == str(Default[c]):
+                        if str(pixel) == str(DefaultSET[c]):
                             color = rgb_to_hex(NewCo[c])
                             image[f].put(color ,(x, y))
                         # print(pixel)
@@ -627,7 +650,7 @@ class Cheese():
             global CurrentState
             global AutomatedActions
             
-        if x > cheesepos -5 and x < cheesepos + 5 and CurrentState == "Cheese" and self.CheeseState != "Dragging":
+        if x > cheesepos -5 and x < cheesepos + 5 and CurrentState == "Cheese" and self.CheeseState != "Dragging" and self.y == GroundYPosition:
             CurrentState = "Walking"
             AutomatedActions = True
             self.window.destroy()
@@ -734,6 +757,7 @@ class Display():
     def CTab(self):
         global Default
         global Brown
+        global CurrentColor
 
         self.Apply = tk.Button(self.Colors, text="Reset", command=self.Reset)
         self.Apply.grid(row=0, column=0, sticky=tk.NSEW)
@@ -827,6 +851,8 @@ class Display():
     def ApplyCo(self):
         global app
         global NewCo
+        with open('pictures\DefaultColor.pkl', 'wb') as file:
+            pickle.dump(NewCo, file)
         # print(NewCo)
         app.SetColor()
 

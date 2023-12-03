@@ -684,7 +684,7 @@ class Display():
         self.WTMNT.grid(row=2, column=1, sticky=tk.NSEW)
         ttk.Separator(self.DBug).grid(row=3, column=1, sticky=tk.NSEW)
 
-        CPLABEL = tk.Label(self.DBug, text="Current Position:")
+        CPLABEL = tk.Label(self.DBug, text="Mouse Position:")
         CPLABEL.grid(row=4, column=0, sticky=tk.NSEW)
         ttk.Separator(self.DBug).grid(row=5, column=0, sticky=tk.NSEW)
         self.CPMNT = tk.Label(self.DBug, text="12")

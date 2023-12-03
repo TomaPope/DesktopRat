@@ -80,7 +80,6 @@ else:
         loaded_data = pickle.load(file)
         Default = loaded_data
         
-# print(Default)
 
 # Print the loaded data
 
@@ -103,7 +102,7 @@ print("Rat Starting...")
 
 # Main Rat Class
 def rgb_to_hex(rgb):
-    return "#{:02x}{:02x}{:02x}".format(rgb[0], rgb[1], rgb[2])
+    return "#{:02x}{:02x}{:02x}".format(int(rgb[0]), int(rgb[1]), int(rgb[2]))
 
 class Rat():
     

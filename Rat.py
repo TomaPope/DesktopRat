@@ -50,7 +50,7 @@ BlackOTLN = False
 CurrentState = "Walking"
 DragState = "Walking"
 LeastTime = 60
-MostTime = 180
+MostTime = 120
 storedstate = "1"
 newstate = "1"
 menuopen = False
@@ -743,10 +743,6 @@ class Display():
         LVMT = tk.IntVar()
         LVMT.set(VelocityLimit)
         
-        #style
-        # self.notebook_style = ttk.Style()
-        # self.notebook_style.configure("TNotebook", background="#E4E4E4", tabposition='n')
-        # self.notebook_style.configure("TNotebook.Tab", background="#626",foreground="black", padding=[4, 1],font=('Helvetica', 10), relief="groove")
         #Notebook Stuff
         self.Settingsnotebook = ttk.Notebook(self.Sett, style="TNotebook")
         self.IdleSett = tk.Frame(self.Settingsnotebook, background="#f0f0f0")
@@ -757,9 +753,6 @@ class Display():
         self.ActionSett.columnconfigure(1, weight=1)
         self.Settingsnotebook.add(self.IdleSett, text="Idle")
         self.Settingsnotebook.add(self.ActionSett, text="Action")
-        
-        
-        # ttk.Separator(self.Sett).pack(pady=3)
         
         # Action Settings
         LTVLabel = tk.Label(self.ActionSett, text="Limit Throw Velocity")
@@ -784,6 +777,12 @@ class Display():
         
         
         #Idle Settings
+        global MostTime
+        global LeastTime
+        self.minvar= tk.StringVar()
+        self.minvar.set(str(LeastTime))
+        self.maxvar= tk.StringVar()
+        self.maxvar.set(str(MostTime))
         
         AALabel = tk.Label(self.IdleSett, text="Automate Actions")
         AALabel.grid(row=2, column=0, sticky=tk.NSEW)
@@ -794,18 +793,19 @@ class Display():
         AACheck.grid(row=2, column=1, sticky=tk.NSEW)
         ttk.Separator(self.IdleSett).grid(row=3, column=1, sticky=tk.NSEW)
         
-        # tk.Label(self.IdleSett, text="Min Auto Time").grid(row=4, column=0, sticky=tk.NSEW)
-        # tk.Label(self.IdleSett, text="Max Auto Time").grid(row=5, column=0, sticky=tk.NSEW)
-        # # ttk.Separator(self.Sett).grid(row=8, column=0, sticky=tk.NSEW)
-        # self.mnsboxlst = tk.Spinbox(self.IdleSett, from_=10, to=300, increment=1)
-        # self.mnsboxlst.grid(row=4, column=1, sticky=tk.NSEW)
+        tk.Label(self.IdleSett, text="Min Auto Time").grid(row=4, column=0, sticky=tk.NSEW)
+        tk.Label(self.IdleSett, text="Max Auto Time").grid(row=5, column=0, sticky=tk.NSEW)
+        self.mnsboxlst = tk.Spinbox(self.IdleSett, from_=10, to=300, increment=1, textvariable=self.minvar)
+        self.mnsboxlst.grid(row=4, column=1, sticky=tk.NSEW)
         
-        # self.mxsboxlst = tk.Spinbox(self.IdleSett, from_=10, to=300, increment=1)
-        # self.mxsboxlst.grid(row=5, column=1, sticky=tk.NSEW)
-        # # killLabel = tk.Button(self.Sett, text="Kill Rat", command=self.kill)
-        # # killLabel.grid(row=70, column=0, sticky=tk.NSEW)
-        # ttk.Separator(self.IdleSett).grid(row=6, column=0, sticky=tk.NSEW)
-        # ttk.Separator(self.IdleSett).grid(row=6, column=1, sticky=tk.NSEW)
+        self.mxsboxlst = tk.Spinbox(self.IdleSett, from_=10, to=301, increment=1, textvariable=self.maxvar)
+        self.mxsboxlst.grid(row=5, column=1, sticky=tk.NSEW)
+        # killLabel = tk.Button(self.Sett, text="Kill Rat", command=self.kill)
+        # killLabel.grid(row=70, column=0, sticky=tk.NSEW)
+        ttk.Separator(self.IdleSett).grid(row=6, column=0, sticky=tk.NSEW)
+        ttk.Separator(self.IdleSett).grid(row=6, column=1, sticky=tk.NSEW)
+        
+        
             
     def CTab(self):
         global Default
@@ -1028,7 +1028,6 @@ class Display():
         global monitorwidth
         if self.x >= monitorwidth-230:
             self.x = monitorwidth-300
-        
 
         # Pack the notebook
         self.Settingsnotebook.pack(expand=1, fill="both")
@@ -1085,6 +1084,14 @@ class Display():
         global VelocityLimit
         global speedoff
         
+        global MostTime
+        global LeastTime
+        
+        
+        LeastTime = int(self.mnsboxlst.get())
+        MostTime = int(self.mxsboxlst.get())
+        if LeastTime >= MostTime:
+            self.maxvar.set(LeastTime+1)
         # speedoff = float(self.sbox.get())
         
         mousepos = pyautogui.position()

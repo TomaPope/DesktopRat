@@ -107,17 +107,33 @@ def rgb_to_hex(rgb):
 
 class Rat():
     
+    def AddHat(self, image):
+        hat = Image.open("pictures/Hats/Fez.png")
+        for i in range(8):
+            frame = ImageTk.getimage(image[i])
+            g = Image.alpha_composite(hat,frame)
+            # frame.paste(hat, (0,0))
+            h= ImageTk.PhotoImage(g)
+            pyimage5 = tk.PhotoImage()
+            pyimage5.tk.call(pyimage5, 'copy', h)
+            image[i] = pyimage5
+        return
+    
     def AniColor(self, frames, image):
         global CurrentColor
         global NewCo
         global Default
         global Brown
         global BlackOTLN
+        # print(image)
         for f in range(frames):
             for x in range(IMGWIDTH):
                 for y in range(IMGHEIGHT):
                     # Get the current pixel's color
-                    pixel = image[f].get( x, y)
+                    # print(x)
+                    # print(y)
+                    # print(f"{x} / {y}")
+                    pixel = image[f].get(x, y)
                     for c in range(8):
                         if str(pixel) == str(DefaultSET[c]):
                             color = rgb_to_hex(NewCo[c])
@@ -138,11 +154,17 @@ class Rat():
         
         self.walking_right = [tk.PhotoImage(
             file="pictures/ratwalk.gif", format='gif -index %i' % (i)) for i in range(8)]
+        # print(";;;;;;;;;;;;;;;;;;;;")
+        # print(self.walking_right)
+        
         self.AniColor(8, self.walking_right)
+        self.AddHat(self.walking_right)
         
         self.walking_left = [tk.PhotoImage(
             file="pictures/ratwalkleft.gif", format='gif -index %i' % (i)) for i in range(8)]
-        self.AniColor(8, self.walking_left)
+        # self.AniColor(8, self.walking_left)
+        for i in range(8):
+            self.walking_left[i] = self.walking_right[i].subsample(x=-1, y=1)
         
         self.lay = [tk.PhotoImage(
             file="pictures/LayDown.png", format='png')]

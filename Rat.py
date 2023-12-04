@@ -157,8 +157,8 @@ class Rat():
         # print(";;;;;;;;;;;;;;;;;;;;")
         # print(self.walking_right)
         
-        self.AniColor(8, self.walking_right)
         self.AddHat(self.walking_right)
+        self.AniColor(8, self.walking_right)
         
         self.walking_left = [tk.PhotoImage(
             file="pictures/ratwalkleft.gif", format='gif -index %i' % (i)) for i in range(8)]
@@ -983,11 +983,11 @@ class Display():
 
         
 
-        self.notebook = ttk.Notebook(self.master)
-        self.Sett = tk.Frame(self.notebook, background="#f0f0f0")
 
+        self.notebook = ttk.Notebook(self.master)
 
         #Settings Tab
+        self.Sett = tk.Frame(self.notebook, background="#f0f0f0")
         self.Sett.pack(expand=True, fill="both")
         
         
@@ -998,18 +998,22 @@ class Display():
         self.DBug.columnconfigure(1, weight=1)
 
 
-        self.test = tk.Frame(self.notebook, background="#f0f0f0")
-        
+        self.Close = tk.Frame(self.notebook, background="#f0f0f0")
         self.Colors = tk.Frame(self.notebook, background="#f0f0f0")
         self.Colors.pack(expand=True, fill="both")
         self.Colors.rowconfigure(100, weight=1)
         self.Colors.columnconfigure(3, weight=1)
         
+        self.Caps = tk.Frame(self.notebook, background="#f0f0f0")
+        self.Caps.pack(expand=True, fill="both")
+
+        
         # Create tabs for the notebook
         self.notebook.add(self.Colors, text="Colors")
+        self.notebook.add(self.Caps, text="Caps")
         self.notebook.add(self.Sett, text="Settings")
         self.notebook.add(self.DBug, text="Debug")
-        self.notebook.add(self.test, text="X")
+        self.notebook.add(self.Close, text="X")
         
         
         
@@ -1042,7 +1046,7 @@ class Display():
     def on_tab_select(self, event):
         selected_tab = self.notebook.index(self.notebook.select())
 
-        if selected_tab == 3:
+        if selected_tab == 4:
             self.close()  # Close the window    
     def close(self):
         global menuopen

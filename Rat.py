@@ -41,7 +41,7 @@ cheesepos = 0
 
 #Image Stuff
 frame = 5
-img = Image.open("pictures/ratwalk.gif")
+img = Image.open("data/pictures/ratwalk.gif")
 IMGHEIGHT = img.height
 IMGWIDTH = img.width
 BlackOTLN = False
@@ -61,23 +61,27 @@ VelocityLimit = 40
 AutomatedActions = True
 speedoff = 1
 
+d = None
+#Hats
+hatDir = None
+
 DefaultSET = [(64, 64, 64),(48, 48, 48),(24, 24, 24),(128, 128, 128),
                  (255, 158, 221),(188, 139, 171),(188, 146, 173),(130, 104, 121)]
 
-# with open('pictures\DefaultColor.pkl', 'wb') as file:
+# with open('pictures/DefaultColor.pkl', 'wb') as file:
 #     pickle.dump(Default, file)
 
 # Read the data from the file
 Default = None
 
-if os.path.exists("pictures\DefaultColor.pkl"):
-    with open('pictures\DefaultColor.pkl', 'rb') as file:
+if os.path.exists("data/DefaultColor.pkl"):
+    with open('data/DefaultColor.pkl', 'rb') as file:
         loaded_data = pickle.load(file)
     Default = loaded_data
 else:
-    with open('pictures\DefaultColor.pkl', 'wb') as file:
+    with open('data/DefaultColor.pkl', 'wb') as file:
         pickle.dump(DefaultSET, file)
-    with open('pictures\DefaultColor.pkl', 'rb') as file:
+    with open('data/DefaultColor.pkl', 'rb') as file:
         loaded_data = pickle.load(file)
         Default = loaded_data
         
@@ -94,6 +98,8 @@ White = [(210, 210, 210), (183, 183, 183), (151, 151, 151), (0, 0, 0),
                  (255, 158, 221),(188, 139, 171),(188, 146, 173),(130, 104, 121)]
 Remy = [(81, 125, 174), (75, 100, 158), (66, 87, 138), (222, 141, 103),
                  (255, 158, 221), (188, 139, 171), (188, 146, 173),(130, 104, 121)]
+Blue = [(100, 129, 196), (102, 102, 193), (112, 121, 184), (0, 0, 0), 
+        (255, 158, 221), (188, 139, 171), (188, 146, 173), (130, 104, 121)]
 
 CurrentColor = Default.copy()
 
@@ -108,16 +114,19 @@ def rgb_to_hex(rgb):
 class Rat():
     
     def AddHat(self, image):
-        hat = Image.open("pictures/Hats/Fez.png")
-        for i in range(8):
-            frame = ImageTk.getimage(image[i])
-            g = Image.alpha_composite(hat,frame)
-            # frame.paste(hat, (0,0))
-            h= ImageTk.PhotoImage(g)
-            pyimage5 = tk.PhotoImage()
-            pyimage5.tk.call(pyimage5, 'copy', h)
-            image[i] = pyimage5
-        return
+        global hatDir
+        if hatDir != None:
+            hat = Image.open(str(hatDir))
+            # print(hatDir)
+            for i in range(8):
+                frame = ImageTk.getimage(image[i])
+                g = Image.alpha_composite(frame,hat)
+                # frame.paste(hat, (0,0))
+                h= ImageTk.PhotoImage(g)
+                pyimage5 = tk.PhotoImage()
+                pyimage5.tk.call(pyimage5, 'copy', h)
+                image[i] = pyimage5
+            return
     
     def AniColor(self, frames, image):
         global CurrentColor
@@ -127,6 +136,7 @@ class Rat():
         global BlackOTLN
         # print(image)
         for f in range(frames):
+            # print(f)
             for x in range(IMGWIDTH):
                 for y in range(IMGHEIGHT):
                     # Get the current pixel's color
@@ -149,11 +159,11 @@ class Rat():
         
         
         self.Rolling = [tk.PhotoImage(
-            file="pictures/RatRoll.gif", format='gif -index %i' % (i)) for i in range(4)]
+            file="data/pictures/RatRoll.gif", format='gif -index %i' % (i)) for i in range(4)]
         self.AniColor(4, self.Rolling)
         
         self.walking_right = [tk.PhotoImage(
-            file="pictures/ratwalk.gif", format='gif -index %i' % (i)) for i in range(8)]
+            file="data/pictures/ratwalk.gif", format='gif -index %i' % (i)) for i in range(8)]
         # print(";;;;;;;;;;;;;;;;;;;;")
         # print(self.walking_right)
         
@@ -161,18 +171,22 @@ class Rat():
         self.AniColor(8, self.walking_right)
         
         self.walking_left = [tk.PhotoImage(
-            file="pictures/ratwalkleft.gif", format='gif -index %i' % (i)) for i in range(8)]
+            file="data/pictures/ratwalkleft.gif", format='gif -index %i' % (i)) for i in range(8)]
         # self.AniColor(8, self.walking_left)
         for i in range(8):
             self.walking_left[i] = self.walking_right[i].subsample(x=-1, y=1)
         
         self.lay = [tk.PhotoImage(
-            file="pictures/LayDown.png", format='png')]
+            file="data/pictures/LayDown.png", format='png')]
         self.AniColor(1, self.lay)
         
         self.laying = [tk.PhotoImage(
-            file="pictures/layingdown.gif", format='gif -index %i' % (i)) for i in range(6)]
+            file="data/pictures/layingdown.gif", format='gif -index %i' % (i)) for i in range(6)]
         self.AniColor(6, self.laying)
+        
+        self.Ballooning = [tk.PhotoImage(
+            file="data/pictures/Balloon.gif", format='gif -index %i' % (i)) for i in range(7)]
+        self.AniColor(7, self.Ballooning)
     
         return
 
@@ -280,9 +294,10 @@ class Rat():
             if self.changeaction <= time.time():
                 self.changeaction = time.time()
                 self.changeaction += random.randrange(LeastTime,MostTime)
-                randomoptions = ["Walking", "Sitting", "Chasing", "Rolling", "Cheese"]
+                randomoptions = ["Walking", "Sitting", "Chasing", "Rolling", "Cheese", "Balloon"]
                 storedstate = CurrentState
                 newstate = random.choice(randomoptions)
+                self.frame_index = 0
                 if storedstate == "Sitting" and newstate != "Sitting":
                     frame = 6
                     CurrentState = "Standing"
@@ -293,6 +308,19 @@ class Rat():
                     if CurrentState == "Sitting":
                         frame = 0
                         
+                        
+        if CurrentState == "Balloon":
+            if self.frame_index == 6:
+                if y > 0:
+                    y -= 1
+                else:
+                    CurrentState = "Walking"
+            # print(self.frame_index)
+            if time.time() > self.timestamp + 0.1 and self.frame_index !=6:
+                self.timestamp = time.time()
+                # advance the frame by one, wrap back to 0 at the end
+                self.frame_index = (self.frame_index + 1) % 7
+                self.img = self.Ballooning[self.frame_index]
                         
         global speedoff
         #Walking Function
@@ -496,10 +524,7 @@ class Rat():
         ActionsSub.add_command(label="Walk", command=self.JustWalk)
         ActionsSub.add_command(label="Roll", command=self.Roll)
         #ACT-Chase
-        if CurrentState == "Chasing":
-            ActionsSub.add_command(label="Stop Chase", command=self.Chase)
-        else:
-            ActionsSub.add_command(label="Chase", command=self.Chase)
+        ActionsSub.add_command(label="Chase", command=self.Chase)
         #ACT-Sit/Stand
         if CurrentState == "Sitting":
             ActionsSub.add_command(label="Stand", command=self.Sit)
@@ -507,6 +532,7 @@ class Rat():
             ActionsSub.add_command(label="Sit", command=self.Sit)
         #cheese
         ActionsSub.add_command(label="Summon Cheese", command=self.Cheese)        
+        ActionsSub.add_command(label="Balloon", command=self.Balloon)        
         ActionsSub.add_separator()
               
         # #Settings
@@ -537,6 +563,7 @@ class Rat():
     def quit(self):
         exit()
     def Sit(self):
+        self.frame_index = 0
         global CurrentState
         global frame
         if CurrentState != "Sitting":
@@ -546,17 +573,13 @@ class Rat():
             frame = 6
             CurrentState = "Standing"
     def Roll(self):
+        self.frame_index = 0
         global CurrentState
-        if CurrentState == "Rolling":
-            CurrentState = "Walking"
-        else:
-            CurrentState = "Rolling"
+        CurrentState = "Rolling"
     def Chase(self):
+        self.frame_index = 0
         global CurrentState
-        if CurrentState == "Chasing":
-            CurrentState = "Walking"
-        else:
-            CurrentState = "Chasing"
+        CurrentState = "Chasing"
     def ToggleLimitedVelocity(self):
         global LimitedVelocity
         LimitedVelocity = not LimitedVelocity
@@ -564,36 +587,42 @@ class Rat():
         global AutomatedActions
         AutomatedActions = not AutomatedActions
     def JustWalk(self):
+        self.frame_index = 0
         global CurrentState
-        if CurrentState == "Sitting" or CurrentState == "Chasing":
-            global frame
-            frame = 6
-            CurrentState = "Standing"
-        else:
-            CurrentState = "Walking"
+        CurrentState = "Walking"
+    def Balloon(self):
+        global CurrentState
+        self.frame_index = 0
+        CurrentState = "Balloon"
 
     def Cheese(self):
         global CurrentState
         CurrentState = "Cheese"
     def dis(self, event):
         global menuopen
+        global d
         if menuopen == False:
             menuopen = True
-            Display()
+            d = Display()
         else:
             menuopen = False
+            # menuopen = False
+            # menuopen = True
+            # Display()
 
     #Start/Stop Drag Functions
     def Drag(self, event):
         global CurrentState
         global DragState
-        DragState = CurrentState
+        if CurrentState == "Balloon":
+            DragState = "Walking"
+        else:
+            DragState = CurrentState
         CurrentState = "Dragging"
     def StopDrag(self, event):
         global CurrentState
         global DragState
         CurrentState = "Falling"
-
 
 class Cheese():
 
@@ -603,15 +632,18 @@ class Cheese():
         global monitorwidth
         self.window = tk.Toplevel()
         self.img = [tk.PhotoImage(
-            file="pictures/food.png")]
-        food = Image.open("pictures/food.png")
+            file="data/pictures/food.png")]
+        food = Image.open("data/pictures/food.png")
         self.window.config(highlightbackground='#418EE4')
         self.window.overrideredirect(True)
         self.window.attributes('-topmost', True)
         self.window.wm_attributes('-transparentcolor', '#418EE4')
         self.label = tk.Label(self.window, bd=0, bg='#418EE4')
         global monitorwidth
-        self.x = random.randrange(0, monitorwidth - int(img.width/2))
+        global x
+        self.x = x
+        while self.x > x - 500 and self.x < x + 500:
+            self.x = random.randrange(0, monitorwidth - int(img.width/2))
         self.y = -1000
         self.gravy = 0
         self.window.geometry(
@@ -634,7 +666,7 @@ class Cheese():
         return
 
     def update(self):
-        food = Image.open("pictures/food.png")
+        food = Image.open("data/pictures/food.png")
         
         user32 = ctypes.windll.user32
         screensize = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
@@ -804,19 +836,29 @@ class Display():
         # killLabel.grid(row=70, column=0, sticky=tk.NSEW)
         ttk.Separator(self.IdleSett).grid(row=6, column=0, sticky=tk.NSEW)
         ttk.Separator(self.IdleSett).grid(row=6, column=1, sticky=tk.NSEW)
-        
-        
-            
+                
     def CTab(self):
         global Default
         global Brown
         global CurrentColor
 
-        self.Apply = tk.Button(self.Colors, text="Reset", command=self.Reset)
-        self.Apply.grid(row=0, column=0, sticky=tk.NSEW)
+        
 
-        self.Apply = tk.Button(self.Colors, text="Apply", command=self.ApplyCo)
-        self.Apply.grid(row=0, column=2, sticky=tk.NSEW)
+        self.Rst = tk.Button(self.Looks, text="Reset", command=self.Reset)
+        # self.Apply.grid(row=0, column=0, sticky=tk.NSEW)
+
+        self.Apply = tk.Button(self.Looks, text="Apply", command=self.ApplyCo)
+        # self.Apply.grid(row=0, column=2, sticky=tk.NSEW)
+
+        self.Looksnotebook = ttk.Notebook(self.Looks, style="TNotebook")
+        self.Colors = tk.Frame(self.Looksnotebook, background="#f0f0f0")
+        self.Caps = tk.Frame(self.Looksnotebook, background="#f0f0f0")
+        self.Colors.rowconfigure(100, weight=4)
+        self.Colors.columnconfigure(1, weight=4)
+        self.Caps.rowconfigure(100, weight=1)
+        self.Caps.columnconfigure(1, weight=1)
+        self.Looksnotebook.add(self.Colors, text="Colors")
+        self.Looksnotebook.add(self.Caps, text="Caps")
         
         #Fur Colors
         tk.Label(self.Colors, text="Fur Color 1: ", width=12).grid(row=2, column=0, sticky=tk.NSEW)
@@ -880,14 +922,38 @@ class Display():
 
         tk.Label(self.Colors, text="Preset Colors: ").grid(row=12, column=0, sticky=tk.NSEW)
 
-        optionList = ('Gray', 'Brown', 'White', "Remy")
+        optionList = ('None','Gray', 'Brown', 'White', "Remy", "Blue")
         self.v = tk.StringVar()
         self.v.set(optionList[0])
         self.om = tk.OptionMenu(self.Colors, self.v, *optionList, command=self.ReFresh)
         self.om.grid(row=12, column=2, sticky=tk.NSEW)
 
-    # def spdset(self):
-    #     print(self.test)
+
+        #Caps
+        self.Hatlist = ["None"]
+        self.DirList = [None]
+
+        directory = os.fsencode("data/pictures/Hats")
+
+        for file in os.listdir(directory):
+            filename = os.fsdecode(file)
+            if filename.endswith(".png"):
+                # print(directory)
+                Name_1 = filename.split(".")[0]
+                Name_2 = Name_1.replace("_", " ")
+                # print(Name_2)
+                test = str((str(os.fsdecode(directory)) + "/" + str(filename)))
+                imagetest = Image.open(test)
+                if imagetest.width == 113:
+                    if imagetest.height == 60:
+                        self.Hatlist.append(Name_2)
+                        self.DirList.append(test)
+
+        self.cpvar = tk.StringVar()
+        self.cpvar.set(self.Hatlist[0])
+        tk.Label(self.Caps, text="Hats: ").grid(row=2, column=0)
+        self.cplt = tk.OptionMenu(self.Caps, self.cpvar, *self.Hatlist)
+        self.cplt.grid(row=2, column=1, sticky=tk.NSEW)
 
     def pick_color(self, btnid, btn):
         global CurrentColor
@@ -905,13 +971,12 @@ class Display():
     def ApplyCo(self):
         global app
         global NewCo
-        with open('pictures\DefaultColor.pkl', 'wb') as file:
+        with open('data/DefaultColor.pkl', 'wb') as file:
             pickle.dump(NewCo, file)
         # print(NewCo)
         app.SetColor()
 
     def Reset(self):
-        print('test')
         global CurrentColor
         global Default
         global NewCo
@@ -941,6 +1006,8 @@ class Display():
                 NewCo[c] = White[c]
             if self.v.get() == "Remy":
                 NewCo[c] = Remy[c]
+            if self.v.get() == "Blue":
+                NewCo[c] = Blue[c]
         self.Fc1.config(bg=rgb_to_hex(NewCo[0]))
         self.Fc2.config(bg=rgb_to_hex(NewCo[1]))
         self.Fc3.config(bg=rgb_to_hex(NewCo[2]))
@@ -952,12 +1019,12 @@ class Display():
 
 
     def __init__(self):
-        
+        self.t = time.time()
         #sets up Window
         master = tk.Toplevel()
         master.wm_attributes('-transparentcolor', '#418EE4')
         master.overrideredirect(True)
-        master.attributes('-topmost', True)
+        # master.attributes('-topmost', True)
         self.master = master
         
         #Setsup tabs
@@ -999,22 +1066,24 @@ class Display():
 
 
         self.Close = tk.Frame(self.notebook, background="#f0f0f0")
-        self.Colors = tk.Frame(self.notebook, background="#f0f0f0")
-        self.Colors.pack(expand=True, fill="both")
-        self.Colors.rowconfigure(100, weight=1)
-        self.Colors.columnconfigure(3, weight=1)
+
+        self.Looks = tk.Frame(self.notebook, background="#f0f0f0")
+        self.Looks.pack(expand=True, fill="both")
+        self.Looks.rowconfigure(100, weight=1)
+        self.Looks.columnconfigure(3, weight=1)
         
-        self.Caps = tk.Frame(self.notebook, background="#f0f0f0")
-        self.Caps.pack(expand=True, fill="both")
+        # self.Caps = tk.Frame(self.notebook, background="#f0f0f0")
+        # self.Caps.pack(expand=True, fill="both")
+        # self.Caps.rowconfigure(100, weight=1)
+        # self.Caps.columnconfigure(1, weight=1)
 
         
         # Create tabs for the notebook
-        self.notebook.add(self.Colors, text="Colors")
-        self.notebook.add(self.Caps, text="Caps")
+        self.notebook.add(self.Looks, text="Looks")
+        # self.notebook.add(self.Caps, text="Caps")
         self.notebook.add(self.Sett, text="Settings")
         self.notebook.add(self.DBug, text="Debug")
         self.notebook.add(self.Close, text="X")
-        
         
         
         self.DBTab()
@@ -1033,8 +1102,22 @@ class Display():
         if self.x >= monitorwidth-230:
             self.x = monitorwidth-300
 
+                # print(os.path.join(directory, filename))
+        global hatDir
+        for h in range(len(self.DirList)):
+            if hatDir == self.DirList[h]:
+                self.cpvar.set(self.Hatlist[h])
+            # if self.cpvar.get() == self.Hatlist[h]:
+                # hatDir = self.DirList[h]
+                # break
+            # else:
+                # hatDir = None
+
         # Pack the notebook
         self.Settingsnotebook.pack(expand=1, fill="both")
+        self.Apply.pack(side="top", fill="both")
+        self.Rst.pack(side="top", fill="both")
+        self.Looksnotebook.pack(expand=1, fill="both")
         self.notebook.pack(expand=1, fill="both")
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_select)
         self.master.geometry("180x165")
@@ -1044,9 +1127,10 @@ class Display():
     def kill(self):
         sys.exit()
     def on_tab_select(self, event):
+        self.t = time.time()
         selected_tab = self.notebook.index(self.notebook.select())
 
-        if selected_tab == 4:
+        if selected_tab == 3:
             self.close()  # Close the window    
     def close(self):
         global menuopen
@@ -1090,7 +1174,15 @@ class Display():
         
         global MostTime
         global LeastTime
-        
+
+        global hatDir
+        for h in range(len(self.Hatlist)):
+            if self.cpvar.get() == self.Hatlist[h]:
+                hatDir = self.DirList[h]
+                break
+            else:
+                hatDir = None
+        # print(hatDir)
         
         LeastTime = int(self.mnsboxlst.get())
         MostTime = int(self.mxsboxlst.get())
@@ -1101,16 +1193,19 @@ class Display():
         mousepos = pyautogui.position()
         
         #debugs
-        # self.LTVAMT.configure(text=f"{VelocityLimit}")
+        self.LTVAMT.configure(text=f"{VelocityLimit}")
         self.CSMNT.configure(text=f"{CurrentState}")
         self.WTMNT.configure(text=f"{WalkToPosition}")
         self.CPMNT.configure(text=f"({x} , {y})")
         self.MPMNT.configure(text=f"({mousepos.x} , {mousepos.y})")
         
         self.master.lift()
-        self.master.geometry('{width}x{height}+{x}+{y}'.format(x=self.x+int(img.width/2) - 90 , y=self.y-260, width=str(220), height=str(230)))
+        self.master.geometry('{width}x{height}+{x}+{y}'.format(x=self.x+int(img.width/2) - 90 , y=self.y-310, width=str(220), height=str(280)))
         self.master.after(10, self.update)
         
+        if time.time() >= self.t + 20:
+            menuopen = False
+            self.master.destroy()
         if menuopen == False:
             self.master.destroy()
         

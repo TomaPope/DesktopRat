@@ -5,16 +5,18 @@ import time
 import random
 from turtle import screensize
 import ctypes
+import win32gui
 import pyautogui #PyAutoGUI
 from win32api import GetMonitorInfo, MonitorFromPoint #pywin23
 from screeninfo import get_monitors #ScreenInfo
 import threading #Thread6
+import imageio #imageio
 from PIL import Image, ImageTk, ImageDraw, ImageSequence #PIL
+import pygetwindow as gw #pygetwindow
 import sys
 import os
 from tkinter import colorchooser
 import pickle
-import imageio #imageio
 
 Version = "Pre 1.3"
 app = None
@@ -22,15 +24,20 @@ Use = False
 
 #ScreenStuff
 monitorwidth = 0
+monitorMinmum = 0
 tempm = 0
 #Gets Length Of Monitor(s)
 for m in get_monitors():
-    monitorwidth += get_monitors()[tempm].width
+    # print(get_monitors()[tempm])
+    if  get_monitors()[tempm].x < 0:
+        monitorMinmum -= get_monitors()[tempm].width
+    else:
+        monitorwidth += get_monitors()[tempm].width
     tempm += 1
 
 #Directional Stuff
 LookingRight = True
-x = -200
+x = -120
 y = -50
 WalkToPosition = None
 speed = 0.08
@@ -100,6 +107,7 @@ Remy = [(81, 125, 174), (75, 100, 158), (66, 87, 138), (222, 141, 103),
                  (255, 158, 221), (188, 139, 171), (188, 146, 173),(130, 104, 121)]
 Blue = [(100, 129, 196), (102, 102, 193), (112, 121, 184), (0, 0, 0), 
         (255, 158, 221), (188, 139, 171), (188, 146, 173), (130, 104, 121)]
+
 
 CurrentColor = Default.copy()
 
@@ -219,12 +227,17 @@ class Rat():
         
         #Finalizes Window
         self.x = 0
+
+        self.wind = None
         self.window.geometry('138x144+{x}+0'.format(x=str(self.x)))
         self.label.configure(image=self.img)
         self.label.pack()
         self.window.after(0, self.update)
         
         print("Rat Started")
+        # all_titles = self.get_window_titles()
+        # print(all_titles[2])
+        # print(f"{gw.getActiveWindow().left} / {gw.getActiveWindow().top}")
         # Display()
 
     #Gravity Functions When Called Causes Gravity
@@ -240,6 +253,8 @@ class Rat():
         else:
             Gravity = 0
         return
+    
+
 
     #Called Every Seconds or So
     def update(self):
@@ -249,6 +264,7 @@ class Rat():
         global frame
         #Screen
         global monitorwidth
+        global monitorMinmum
         global GroundYPosition
         #Position
         global x
@@ -287,7 +303,18 @@ class Rat():
         #checks if the rat is under the ground
         if y > GroundYPosition:
             y = GroundYPosition
-            
+
+        # try:
+        #     if gw.getActiveWindow().center[0] != screensize[0]/2:
+        #         if gw.getActiveWindow().size[0] > 113:
+        #             if gw.getActiveWindow().top > 70:
+        #                 print(gw.getActiveWindow().box)
+        # except:
+        #     self.wind = None
+        #     # print("nah")
+        # finally:
+            pass
+
         
         #automates actions
         if AutomatedActions == True:
@@ -329,7 +356,7 @@ class Rat():
             # print(int(speedoff**2))
             if time.time() > self.timestamp2 + speed:
                 if WalkToPosition == None:
-                    WalkToPosition = random.randrange(0, monitorwidth - int(IMGWIDTH/2))
+                    WalkToPosition = random.randrange(monitorMinmum, monitorwidth - int(IMGWIDTH/2))
                 if WalkToPosition > x:
                     LookingRight = True
                     x += 1
@@ -389,6 +416,10 @@ class Rat():
                     self.img = self.walking_right[self.frame_index]
                 else:
                     self.img = self.walking_left[self.frame_index]
+                    
+            if y >= GroundYPosition + 150:
+                global DragState
+                CurrentState = DragState
 
         #Falling/Throwing Function
         if CurrentState == "Falling":
@@ -401,8 +432,8 @@ class Rat():
             if x >= monitorwidth:
                 x = monitorwidth
                 Velocity[0] = -Velocity[0]
-            if x <= 0:
-                x = 0
+            if x <= monitorMinmum:
+                x = monitorMinmum
                 Velocity[0] = -Velocity[0]
             if y <= 0:
                 y = 0
@@ -420,8 +451,8 @@ class Rat():
                 Velocity[1] += 1
             elif Velocity[1] < 0:
                 Velocity[1] += 1
+                
             if y >= GroundYPosition:
-                global DragState
                 CurrentState = DragState
 
 
@@ -629,7 +660,6 @@ class Cheese():
     def __init__(self):
         self.grav = 0
         self.CheeseState = "Normal"
-        global monitorwidth
         self.window = tk.Toplevel()
         self.img = [tk.PhotoImage(
             file="data/pictures/food.png")]
@@ -643,7 +673,7 @@ class Cheese():
         global x
         self.x = x
         while self.x > x - 500 and self.x < x + 500:
-            self.x = random.randrange(0, monitorwidth - int(img.width/2))
+            self.x = random.randrange(monitorMinmum, monitorwidth - int(img.width/2))
         self.y = -1000
         self.gravy = 0
         self.window.geometry(
@@ -741,7 +771,7 @@ class Display():
         self.WTMNT.grid(row=2, column=1, sticky=tk.NSEW)
         ttk.Separator(self.DBug).grid(row=3, column=1, sticky=tk.NSEW)
 
-        CPLABEL = tk.Label(self.DBug, text="Mouse Position:")
+        CPLABEL = tk.Label(self.DBug, text="Rat Position:")
         CPLABEL.grid(row=4, column=0, sticky=tk.NSEW)
         ttk.Separator(self.DBug).grid(row=5, column=0, sticky=tk.NSEW)
         self.CPMNT = tk.Label(self.DBug, text="12")
@@ -755,11 +785,11 @@ class Display():
         self.MPMNT.grid(row=6, column=1, sticky=tk.NSEW)
         ttk.Separator(self.DBug).grid(row=7, column=1, sticky=tk.NSEW)
         
-        tk.Label(self.DBug, text="Download WalkCycle:").grid(row=8, column=0, sticky=tk.NSEW)
-        ttk.Separator(self.DBug).grid(row=9, column=0, sticky=tk.NSEW)
-        self.DWNLWC = tk.Button(self.DBug, text="Download", command=self.download)
-        self.DWNLWC.grid(row=8, column=1, sticky=tk.NSEW)
-        ttk.Separator(self.DBug).grid(row=9, column=1, sticky=tk.NSEW)
+        tk.Button(self.DBug, text="New Walk-Position:", command=self.newwalktoposition).grid(row=80, column=0, sticky=tk.NSEW)
+        ttk.Separator(self.DBug).grid(row=90, column=0, sticky=tk.NSEW)
+        self.DWNLWC = tk.Button(self.DBug, text="Download Walk", command=self.download)
+        self.DWNLWC.grid(row=80, column=1, sticky=tk.NSEW)
+        ttk.Separator(self.DBug).grid(row=90, column=1, sticky=tk.NSEW)
         
         return
         
@@ -791,9 +821,19 @@ class Display():
         LTVLabel.grid(row=0, column=0, sticky=tk.NSEW)
         ttk.Separator(self.ActionSett).grid(row=1, column=0, sticky=tk.NSEW)
         
+        
+        # TV = tk.BooleanVar()
+        # TV.set(LimitedVelocity)
+        # TV.trace('w', lambda *_: print("The value was changed"))
+        # print(TV)
         LTVCheck = tk.Checkbutton(self.ActionSett, command=self.LMTV)
+        # print(LimitedVelocity)
+        # LTVCheck.toggle()
         if LimitedVelocity:
             LTVCheck.select()
+        else:
+        #     print("t")
+            LTVCheck.deselect()
         LTVCheck.grid(row=0, column=1, sticky=tk.NSEW)
         ttk.Separator(self.ActionSett).grid(row=1, column=1, sticky=tk.NSEW)
         
@@ -858,7 +898,7 @@ class Display():
         self.Caps.rowconfigure(100, weight=1)
         self.Caps.columnconfigure(1, weight=1)
         self.Looksnotebook.add(self.Colors, text="Colors")
-        self.Looksnotebook.add(self.Caps, text="Caps")
+        self.Looksnotebook.add(self.Caps, text="Caps & Details")
         
         #Fur Colors
         tk.Label(self.Colors, text="Fur Color 1: ", width=12).grid(row=2, column=0, sticky=tk.NSEW)
@@ -911,23 +951,38 @@ class Display():
         self.Ftc2.grid(row=8, column=3, sticky=tk.NSEW)
         ttk.Separator(self.Colors).grid(row=9, column=3, sticky=tk.NSEW)
         
-        tk.Label(self.Colors, text="Black Outline: ").grid(row=10, column=0, sticky=tk.NSEW)
         # ttk.Separator(self.Colors).grid(row=11, column=2, sticky=tk.NSEW)
-        global BlackOTLN
-        self.IsBlack = tk.Checkbutton(self.Colors, variable=False, command=self.BLKOLN)
-        # if BlackOTLN == True:
-            # self.IsBlack.config(variable=True)
-        self.IsBlack.grid(row=10, column=2, sticky=tk.NSEW)
         # ttk.Separator(self.Colors).grid(row=11, column=2, sticky=tk.NSEW)
 
-        tk.Label(self.Colors, text="Preset Colors: ").grid(row=12, column=0, sticky=tk.NSEW)
+        # self.PRECOLAB = tk.Label(self.Looks, text="Preset Colors: ")
 
-        optionList = ('None','Gray', 'Brown', 'White', "Remy", "Blue")
+        self.ColorList = ["None"]
+        self.ColorDirList = [None]
+
+        directory = os.fsencode("data/Colors")
+
+        for file in os.listdir(directory):
+            filename = os.fsdecode(file)
+            if filename.endswith(".pkl"):
+                # print(directory)
+                Name_1 = filename.split(".")[0]
+                Name_2 = Name_1.replace("_", " ")
+                # print(Name_2)
+                test = str((str(os.fsdecode(directory)) + "/" + str(filename)))
+
+                self.ColorList.append(Name_2)
+                self.ColorDirList.append(test)
+
+        # optionList = ('None','Gray', 'Brown', 'White', "Remy", "Blue")
         self.v = tk.StringVar()
-        self.v.set(optionList[0])
-        self.om = tk.OptionMenu(self.Colors, self.v, *optionList, command=self.ReFresh)
-        self.om.grid(row=12, column=2, sticky=tk.NSEW)
+        self.v.set(self.ColorList[0])
+        self.om = tk.OptionMenu(self.Looks, self.v, *self.ColorList, command=self.ReFresh)
+        # self.om.grid(row=12, column=2, sticky=tk.NSEW)
 
+        self.name_var=tk.StringVar()
+        self.name_var.set("Preset Name")
+        tk.Entry(self.Colors, width=10, textvariable=self.name_var).grid(row=13, column=0, sticky=tk.NSEW)
+        tk.Button(self.Colors, text="Create Preset", command=self.presetdownload).grid(row=13, column=2, sticky=tk.NSEW)
 
         #Caps
         self.Hatlist = ["None"]
@@ -954,6 +1009,16 @@ class Display():
         tk.Label(self.Caps, text="Hats: ").grid(row=2, column=0)
         self.cplt = tk.OptionMenu(self.Caps, self.cpvar, *self.Hatlist)
         self.cplt.grid(row=2, column=1, sticky=tk.NSEW)
+
+        ttk.Separator(self.Caps).grid(row=3, column=0, sticky=tk.NSEW)
+        ttk.Separator(self.Caps).grid(row=3, column=1, sticky=tk.NSEW)
+
+        tk.Label(self.Caps, text="Black Outline: ").grid(row=4, column=0, sticky=tk.NSEW)
+        global BlackOTLN
+        self.IsBlack = tk.Checkbutton(self.Caps, variable=False, command=self.BLKOLN)
+        # if BlackOTLN == True:
+            # self.IsBlack.config(variable=True)
+        self.IsBlack.grid(row=4, column=1, sticky=tk.NSEW)
 
     def pick_color(self, btnid, btn):
         global CurrentColor
@@ -997,17 +1062,28 @@ class Display():
         global CurrentColor
         global Default
         global NewCo
-        for c in range(8):
-            if self.v.get() == "Gray":
-                NewCo[c] = Gray[c]
-            if self.v.get() == "Brown":
-                NewCo[c] = Brown[c]
-            if self.v.get() == "White":
-                NewCo[c] = White[c]
-            if self.v.get() == "Remy":
-                NewCo[c] = Remy[c]
-            if self.v.get() == "Blue":
-                NewCo[c] = Blue[c]
+        if self.v.get() != "None":
+            num = 0
+            for i in range(len(self.ColorList)):
+                if self.ColorList[i] == self.v.get():
+                    num = i
+                    break
+            cur = []
+            with open(self.ColorDirList[i], 'rb') as file:
+                loaded_data = pickle.load(file)
+                cur = loaded_data
+            for c in range(8):
+                NewCo[c] = cur[c]
+            # if self.v.get() == "Gray":
+            #     NewCo[c] = Gray[c]
+            # if self.v.get() == "Brown":
+            #     NewCo[c] = Brown[c]
+            # if self.v.get() == "White":
+            #     NewCo[c] = White[c]
+            # if self.v.get() == "Remy":
+            #     NewCo[c] = Remy[c]
+            # if self.v.get() == "Blue":
+            #     NewCo[c] = Blue[c]
         self.Fc1.config(bg=rgb_to_hex(NewCo[0]))
         self.Fc2.config(bg=rgb_to_hex(NewCo[1]))
         self.Fc3.config(bg=rgb_to_hex(NewCo[2]))
@@ -1017,12 +1093,20 @@ class Display():
         self.Ftc1.config(bg=rgb_to_hex(NewCo[6]))
         self.Ftc2.config(bg=rgb_to_hex(NewCo[7]))
 
+    def presetdownload(self):
+        global CurrentColor
+        name = self.name_var.get()
+        if name == "Preset Name":
+            name = str(int(time.time())) 
+        with open(f'data/Colors/{name}.pkl', 'wb') as file:
+            pickle.dump(NewCo, file)
+        self.close()
 
     def __init__(self):
         self.t = time.time()
         #sets up Window
         master = tk.Toplevel()
-        master.wm_attributes('-transparentcolor', '#418EE4')
+        # master.wm_attributes('-transparentcolor', '#418EE4')
         master.overrideredirect(True)
         # master.attributes('-topmost', True)
         self.master = master
@@ -1095,10 +1179,11 @@ class Display():
         self.x = x
         self.y = y
 
-        if self.x <= 80:
-            self.x = 100
-
         global monitorwidth
+        global monitorMinmum
+        if self.x <= monitorMinmum + 80:
+            self.x = monitorMinmum + 100
+
         if self.x >= monitorwidth-230:
             self.x = monitorwidth-300
 
@@ -1117,6 +1202,7 @@ class Display():
         self.Settingsnotebook.pack(expand=1, fill="both")
         self.Apply.pack(side="top", fill="both")
         self.Rst.pack(side="top", fill="both")
+        self.om.pack(side="top", fill="both")
         self.Looksnotebook.pack(expand=1, fill="both")
         self.notebook.pack(expand=1, fill="both")
         self.notebook.bind("<<NotebookTabChanged>>", self.on_tab_select)
@@ -1163,7 +1249,9 @@ class Display():
             
         name = str(int(time.time()))
         imageio.mimsave(f"{name}.gif", image, fps=10, disposal=2, loop=0)
-
+    def newwalktoposition(self):
+        global WalkToPosition
+        WalkToPosition = None
 
     def update(self):
         global menuopen
@@ -1203,9 +1291,9 @@ class Display():
         self.master.geometry('{width}x{height}+{x}+{y}'.format(x=self.x+int(img.width/2) - 90 , y=self.y-310, width=str(220), height=str(280)))
         self.master.after(10, self.update)
         
-        if time.time() >= self.t + 20:
-            menuopen = False
-            self.master.destroy()
+        # if time.time() >= self.t + 600:
+        #     menuopen = False
+        #     self.master.destroy()
         if menuopen == False:
             self.master.destroy()
         

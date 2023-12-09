@@ -1,4 +1,4 @@
-# Desktop Rat (Current Dev Build)
+# Desktop Rat (1.3.0)
 
 An adorable rat that walks around and hangs out on your taskbar     
 EXE Download: https://tomapope.itch.io/desktop-rat
@@ -15,6 +15,7 @@ The following are actions the rat can do
 | Chase | When on the rat will chase after the mouse cursor till told to stop |
 | Sit | When on the rat will lay on the ground till told otherwise |
 | Cheese | Summons a cheese which the rat will hunt |
+| Balloon | When on the rat will float up till it hits the top of the screen |
 
 ## Settings
 | Setting | Description | Default Value |
@@ -22,3 +23,5 @@ The following are actions the rat can do
 |Limited Velocity| Limits the force you can throw the rat with | True |
 |Thorw Velocity Limit| When you limit the velocity this value will set the limit the high the number the more chaotic | 40 |
 |Automate Actions| Allows the rat to automatically switch actions on it's own | True |
+|Min Auto Time| The minimum amount of time between switching actions | 60s |
+|Max Auto Time| The maximum amount of time between switching actions | 120s |

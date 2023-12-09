@@ -18,7 +18,7 @@ import os
 from tkinter import colorchooser
 import pickle
 
-Version = "Pre 1.3"
+Version = "1.3.0"
 app = None
 Use = False
 
@@ -26,6 +26,8 @@ Use = False
 monitorwidth = 0
 monitorMinmum = 0
 tempm = 0
+
+Monitors = []
 #Gets Length Of Monitor(s)
 for m in get_monitors():
     # print(get_monitors()[tempm])
@@ -33,7 +35,10 @@ for m in get_monitors():
         monitorMinmum -= get_monitors()[tempm].width
     else:
         monitorwidth += get_monitors()[tempm].width
+    Monitors.append([get_monitors()[tempm].x, get_monitors()[tempm].width, get_monitors()[tempm].y, get_monitors()[tempm].height])
+
     tempm += 1
+# print(Monitors)
 
 #Directional Stuff
 LookingRight = True
@@ -233,12 +238,13 @@ class Rat():
         self.label.configure(image=self.img)
         self.label.pack()
         self.window.after(0, self.update)
+
+        global x
+        global monitorMinmum
+        x = monitorMinmum - 120
         
         print("Rat Started")
-        # all_titles = self.get_window_titles()
-        # print(all_titles[2])
-        # print(f"{gw.getActiveWindow().left} / {gw.getActiveWindow().top}")
-        # Display()
+
 
     #Gravity Functions When Called Causes Gravity
     def Gravity(self):
@@ -291,7 +297,14 @@ class Rat():
         monitor_info = GetMonitorInfo(MonitorFromPoint((0, 0)))
         monitor_area = monitor_info.get("Monitor")
         work_area = monitor_info.get("Work")
-        GroundYPosition = int(screensize[1] - IMGHEIGHT - (monitor_area[3]-work_area[3]))
+        global Monitors
+        size = screensize[1]
+        Top = 0
+        for arry in Monitors:
+            if x > arry[0] and x < arry[0] + arry[1]:
+                size = arry[2] + arry[3]
+                Top = arry[2]
+        GroundYPosition = int(size - IMGHEIGHT - (monitor_area[3]-work_area[3]))
         mousepos = pyautogui.position()
 
         #Calls Stuff INvolving The Mouse
@@ -303,18 +316,6 @@ class Rat():
         #checks if the rat is under the ground
         if y > GroundYPosition:
             y = GroundYPosition
-
-        # try:
-        #     if gw.getActiveWindow().center[0] != screensize[0]/2:
-        #         if gw.getActiveWindow().size[0] > 113:
-        #             if gw.getActiveWindow().top > 70:
-        #                 print(gw.getActiveWindow().box)
-        # except:
-        #     self.wind = None
-        #     # print("nah")
-        # finally:
-            pass
-
         
         #automates actions
         if AutomatedActions == True:
@@ -338,11 +339,10 @@ class Rat():
                         
         if CurrentState == "Balloon":
             if self.frame_index == 6:
-                if y > 0:
+                if y > Top:
                     y -= 1
                 else:
                     CurrentState = "Walking"
-            # print(self.frame_index)
             if time.time() > self.timestamp + 0.1 and self.frame_index !=6:
                 self.timestamp = time.time()
                 # advance the frame by one, wrap back to 0 at the end
@@ -353,7 +353,6 @@ class Rat():
         #Walking Function
         if CurrentState == "Walking":
             self.Gravity()
-            # print(int(speedoff**2))
             if time.time() > self.timestamp2 + speed:
                 if WalkToPosition == None:
                     WalkToPosition = random.randrange(monitorMinmum, monitorwidth - int(IMGWIDTH/2))
@@ -380,7 +379,7 @@ class Rat():
                     self.img = self.walking_left[self.frame_index]
 
         if CurrentState == "Rolling":
-            if x >= monitorwidth - int(IMGWIDTH/2):
+            if x >= monitorwidth - int(IMGWIDTH):
                 CurrentState = "Walking"
             LookingRight = True
             x += 5
@@ -417,7 +416,7 @@ class Rat():
                 else:
                     self.img = self.walking_left[self.frame_index]
                     
-            if y >= GroundYPosition + 150:
+            if y >= GroundYPosition + 1000:
                 global DragState
                 CurrentState = DragState
 
@@ -637,9 +636,7 @@ class Rat():
             d = Display()
         else:
             menuopen = False
-            # menuopen = False
-            # menuopen = True
-            # Display()
+
 
     #Start/Stop Drag Functions
     def Drag(self, event):
@@ -673,15 +670,14 @@ class Cheese():
         global x
         self.x = x
         while self.x > x - 500 and self.x < x + 500:
-            self.x = random.randrange(monitorMinmum, monitorwidth - int(img.width/2))
-        self.y = -1000
+            self.x = random.randrange(monitorMinmum, monitorwidth - int(img.width))
+        self.y = -1000000000010
         self.gravy = 0
         self.window.geometry(
             '{width}x{height}+{x}+{y}'.format(x=str(self.x), y=str(self.y), width=str(food.width), height=str(food.height)))
         self.label.configure(image=self.img)
         self.label.pack()
         self.window.after(0, self.update)
-        # self.window.mainloop()
         self.personalallowrandom = True
         self.gp = 0
 
@@ -703,7 +699,12 @@ class Cheese():
         monitor_info = GetMonitorInfo(MonitorFromPoint((0, 0)))
         monitor_area = monitor_info.get("Monitor")
         work_area = monitor_info.get("Work")
-        GroundYPosition = int(screensize[1] - food.height - (monitor_area[3]-work_area[3]))
+        global Monitors
+        size = screensize[1]
+        for arry in Monitors:
+            if self.x > arry[0] and self.x < arry[0] + arry[1]:
+                size = arry[2] + arry[3]
+        GroundYPosition = int(size - food.height - (monitor_area[3]-work_area[3]))
         self.gp = GroundYPosition
         UnderYPosition = int(screensize[1] - (monitor_area[3]-work_area[3]))
         
@@ -712,8 +713,8 @@ class Cheese():
         self.label.bind("<ButtonPress-1>", self.Drag)
         self.label.bind("<ButtonRelease-1>", self.StopDrag)
         
-        if self.y < -200:
-            self.y = screensize[1]
+        if self.y < -1000000000000:
+            self.y = size
             self.grav = 0
         
         if self.y < GroundYPosition and self.CheeseState != "Dragging":
@@ -723,6 +724,7 @@ class Cheese():
             
         if self.y > GroundYPosition:
             self.y -= 1
+        
 
             
         global cheesepos
@@ -732,11 +734,10 @@ class Cheese():
             self.x = mousepos.x - int(food.width/2)
             self.y = mousepos.y - int(food.height/2)    
             
-            global x
-            global CurrentState
-            global AutomatedActions
+        global CurrentState
+        global AutomatedActions
             
-        if x > cheesepos -5 and x < cheesepos + 5 and CurrentState == "Cheese" and self.CheeseState != "Dragging" and self.y == GroundYPosition:
+        if x > cheesepos -5 and x < cheesepos + 5 and self.CheeseState != "Dragging" and self.y == GroundYPosition:
             CurrentState = "Walking"
             AutomatedActions = True
             self.window.destroy()
@@ -821,20 +822,12 @@ class Display():
         LTVLabel.grid(row=0, column=0, sticky=tk.NSEW)
         ttk.Separator(self.ActionSett).grid(row=1, column=0, sticky=tk.NSEW)
         
+
+        self.LTVCheck = tk.Button(self.ActionSett, text="Toggle OFF", command=self.LMTV, width=100)
+        # if LimitedVelocity:
+            # self.LTVCheck.config(text="   Toggle OFF  ")
         
-        # TV = tk.BooleanVar()
-        # TV.set(LimitedVelocity)
-        # TV.trace('w', lambda *_: print("The value was changed"))
-        # print(TV)
-        LTVCheck = tk.Checkbutton(self.ActionSett, command=self.LMTV)
-        # print(LimitedVelocity)
-        # LTVCheck.toggle()
-        if LimitedVelocity:
-            LTVCheck.select()
-        else:
-        #     print("t")
-            LTVCheck.deselect()
-        LTVCheck.grid(row=0, column=1, sticky=tk.NSEW)
+        self.LTVCheck.grid(row=0, column=1, sticky=tk.NSEW)
         ttk.Separator(self.ActionSett).grid(row=1, column=1, sticky=tk.NSEW)
         
         LTVLabel2 = tk.Label(self.ActionSett, text="Throw Velocity Limit")
@@ -859,10 +852,8 @@ class Display():
         AALabel = tk.Label(self.IdleSett, text="Automate Actions")
         AALabel.grid(row=2, column=0, sticky=tk.NSEW)
         ttk.Separator(self.IdleSett).grid(row=3, column=0, sticky=tk.NSEW)
-        AACheck = tk.Checkbutton(self.IdleSett,command=self.AA)
-        if AutomatedActions:
-            AACheck.select()
-        AACheck.grid(row=2, column=1, sticky=tk.NSEW)
+        self.AACheck = tk.Button(self.IdleSett,text="Toggle OFF",command=self.AA)
+        self.AACheck.grid(row=2, column=1, sticky=tk.NSEW)
         ttk.Separator(self.IdleSett).grid(row=3, column=1, sticky=tk.NSEW)
         
         tk.Label(self.IdleSett, text="Min Auto Time").grid(row=4, column=0, sticky=tk.NSEW)
@@ -872,8 +863,6 @@ class Display():
         
         self.mxsboxlst = tk.Spinbox(self.IdleSett, from_=10, to=301, increment=1, textvariable=self.maxvar)
         self.mxsboxlst.grid(row=5, column=1, sticky=tk.NSEW)
-        # killLabel = tk.Button(self.Sett, text="Kill Rat", command=self.kill)
-        # killLabel.grid(row=70, column=0, sticky=tk.NSEW)
         ttk.Separator(self.IdleSett).grid(row=6, column=0, sticky=tk.NSEW)
         ttk.Separator(self.IdleSett).grid(row=6, column=1, sticky=tk.NSEW)
                 
@@ -885,10 +874,8 @@ class Display():
         
 
         self.Rst = tk.Button(self.Looks, text="Reset", command=self.Reset)
-        # self.Apply.grid(row=0, column=0, sticky=tk.NSEW)
 
         self.Apply = tk.Button(self.Looks, text="Apply", command=self.ApplyCo)
-        # self.Apply.grid(row=0, column=2, sticky=tk.NSEW)
 
         self.Looksnotebook = ttk.Notebook(self.Looks, style="TNotebook")
         self.Colors = tk.Frame(self.Looksnotebook, background="#f0f0f0")
@@ -903,7 +890,7 @@ class Display():
         #Fur Colors
         tk.Label(self.Colors, text="Fur Color 1: ", width=12).grid(row=2, column=0, sticky=tk.NSEW)
         ttk.Separator(self.Colors).grid(row=3, column=0, sticky=tk.NSEW)
-        self.Fc1 = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[0]), text="", command=lambda: self.pick_color(0, self.Fc1), width=1)
+        self.Fc1 = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[0]), text="", command=lambda: self.pick_color(0, self.Fc1), width=4)
         self.Fc1.grid(row=2, column=1, sticky=tk.NSEW)
         ttk.Separator(self.Colors).grid(row=3, column=1, sticky=tk.NSEW)
         tk.Label(self.Colors, text="Fur Color 2: ").grid(row=4, column=0, sticky=tk.NSEW)
@@ -927,7 +914,7 @@ class Display():
         #Ear Colors
         tk.Label(self.Colors, text="Ear/Nose Color: ", width=12).grid(row=2, column=2, sticky=tk.NSEW)
         ttk.Separator(self.Colors).grid(row=3, column=2, sticky=tk.NSEW)
-        self.Erc = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[4]), text="", command=lambda: self.pick_color(4, self.Erc), width=1)
+        self.Erc = tk.Button(self.Colors, background=rgb_to_hex(CurrentColor[4]), text="", command=lambda: self.pick_color(4, self.Erc), width=4)
         self.Erc.grid(row=2, column=3, sticky=tk.NSEW)
         ttk.Separator(self.Colors).grid(row=3, column=3, sticky=tk.NSEW)
 
@@ -951,10 +938,6 @@ class Display():
         self.Ftc2.grid(row=8, column=3, sticky=tk.NSEW)
         ttk.Separator(self.Colors).grid(row=9, column=3, sticky=tk.NSEW)
         
-        # ttk.Separator(self.Colors).grid(row=11, column=2, sticky=tk.NSEW)
-        # ttk.Separator(self.Colors).grid(row=11, column=2, sticky=tk.NSEW)
-
-        # self.PRECOLAB = tk.Label(self.Looks, text="Preset Colors: ")
 
         self.ColorList = ["None"]
         self.ColorDirList = [None]
@@ -964,20 +947,16 @@ class Display():
         for file in os.listdir(directory):
             filename = os.fsdecode(file)
             if filename.endswith(".pkl"):
-                # print(directory)
                 Name_1 = filename.split(".")[0]
                 Name_2 = Name_1.replace("_", " ")
-                # print(Name_2)
                 test = str((str(os.fsdecode(directory)) + "/" + str(filename)))
 
                 self.ColorList.append(Name_2)
                 self.ColorDirList.append(test)
 
-        # optionList = ('None','Gray', 'Brown', 'White', "Remy", "Blue")
         self.v = tk.StringVar()
         self.v.set(self.ColorList[0])
         self.om = tk.OptionMenu(self.Looks, self.v, *self.ColorList, command=self.ReFresh)
-        # self.om.grid(row=12, column=2, sticky=tk.NSEW)
 
         self.name_var=tk.StringVar()
         self.name_var.set("Preset Name")
@@ -993,10 +972,8 @@ class Display():
         for file in os.listdir(directory):
             filename = os.fsdecode(file)
             if filename.endswith(".png"):
-                # print(directory)
                 Name_1 = filename.split(".")[0]
                 Name_2 = Name_1.replace("_", " ")
-                # print(Name_2)
                 test = str((str(os.fsdecode(directory)) + "/" + str(filename)))
                 imagetest = Image.open(test)
                 if imagetest.width == 113:
@@ -1016,8 +993,6 @@ class Display():
         tk.Label(self.Caps, text="Black Outline: ").grid(row=4, column=0, sticky=tk.NSEW)
         global BlackOTLN
         self.IsBlack = tk.Checkbutton(self.Caps, variable=False, command=self.BLKOLN)
-        # if BlackOTLN == True:
-            # self.IsBlack.config(variable=True)
         self.IsBlack.grid(row=4, column=1, sticky=tk.NSEW)
 
     def pick_color(self, btnid, btn):
@@ -1038,15 +1013,12 @@ class Display():
         global NewCo
         with open('data/DefaultColor.pkl', 'wb') as file:
             pickle.dump(NewCo, file)
-        # print(NewCo)
         app.SetColor()
 
     def Reset(self):
         global CurrentColor
         global Default
         global NewCo
-        # print(CurrentColor)
-        # print(NewCo)
         for c in range(8):
             NewCo[c] = CurrentColor[c]
         self.Fc1.config(bg=rgb_to_hex(CurrentColor[0]))
@@ -1074,16 +1046,6 @@ class Display():
                 cur = loaded_data
             for c in range(8):
                 NewCo[c] = cur[c]
-            # if self.v.get() == "Gray":
-            #     NewCo[c] = Gray[c]
-            # if self.v.get() == "Brown":
-            #     NewCo[c] = Brown[c]
-            # if self.v.get() == "White":
-            #     NewCo[c] = White[c]
-            # if self.v.get() == "Remy":
-            #     NewCo[c] = Remy[c]
-            # if self.v.get() == "Blue":
-            #     NewCo[c] = Blue[c]
         self.Fc1.config(bg=rgb_to_hex(NewCo[0]))
         self.Fc2.config(bg=rgb_to_hex(NewCo[1]))
         self.Fc3.config(bg=rgb_to_hex(NewCo[2]))
@@ -1106,16 +1068,9 @@ class Display():
         self.t = time.time()
         #sets up Window
         master = tk.Toplevel()
-        # master.wm_attributes('-transparentcolor', '#418EE4')
         master.overrideredirect(True)
-        # master.attributes('-topmost', True)
         self.master = master
-        
-        #Setsup tabs
-        # self.notebook_style = ttk.Style()
-        # self.notebook_style.configure("TNotebook", background="gray", tabposition='n')
-        # self.notebook_style.configure("TNotebook.Tab", background="#626",foreground="black", padding=[4, 1],font=('Helvetica', 10), relief="groove")
-        
+
         global Use
         COLOR_GREEN = "#B9B9B9"
         COLOR_RED = "#f0f0f0"
@@ -1125,7 +1080,7 @@ class Display():
             self.style.theme_create("Main", parent="alt", settings={
                         "TNotebook": {"configure": {"tabmargins": [2, 5, 2, 0], "background": COLOR_BG, "tabposition": 'n' } },
                         "TNotebook.Tab": {
-                        "configure": {"padding": [5, 1], "background": COLOR_GREEN},
+                        "configure": {"padding": [8, 5], "background": COLOR_GREEN},
                         "map":       {"background": [("selected", COLOR_RED)],
                         "expand": [("selected", [1, 1, 1, 0])] } } } )
 
@@ -1144,6 +1099,7 @@ class Display():
         
         #Debug Tab
         self.DBug = tk.Frame(self.notebook, background="#f0f0f0")
+        self.KILL = tk.Frame(self.notebook, background="#f0f0f0")
         self.DBug.pack(expand=True, fill="both")
         self.DBug.rowconfigure(100, weight=1)
         self.DBug.columnconfigure(1, weight=1)
@@ -1156,17 +1112,13 @@ class Display():
         self.Looks.rowconfigure(100, weight=1)
         self.Looks.columnconfigure(3, weight=1)
         
-        # self.Caps = tk.Frame(self.notebook, background="#f0f0f0")
-        # self.Caps.pack(expand=True, fill="both")
-        # self.Caps.rowconfigure(100, weight=1)
-        # self.Caps.columnconfigure(1, weight=1)
 
         
         # Create tabs for the notebook
         self.notebook.add(self.Looks, text="Looks")
-        # self.notebook.add(self.Caps, text="Caps")
         self.notebook.add(self.Sett, text="Settings")
         self.notebook.add(self.DBug, text="Debug")
+        self.notebook.add(self.KILL, text="Kill Rat")
         self.notebook.add(self.Close, text="X")
         
         
@@ -1187,16 +1139,11 @@ class Display():
         if self.x >= monitorwidth-230:
             self.x = monitorwidth-300
 
-                # print(os.path.join(directory, filename))
         global hatDir
         for h in range(len(self.DirList)):
             if hatDir == self.DirList[h]:
                 self.cpvar.set(self.Hatlist[h])
-            # if self.cpvar.get() == self.Hatlist[h]:
-                # hatDir = self.DirList[h]
-                # break
-            # else:
-                # hatDir = None
+
 
         # Pack the notebook
         self.Settingsnotebook.pack(expand=1, fill="both")
@@ -1216,8 +1163,10 @@ class Display():
         self.t = time.time()
         selected_tab = self.notebook.index(self.notebook.select())
 
-        if selected_tab == 3:
+        if selected_tab == 4:
             self.close()  # Close the window    
+        if selected_tab == 3:
+            self.kill()
     def close(self):
         global menuopen
         menuopen = False
@@ -1239,7 +1188,6 @@ class Display():
     def BLKOLN(self):
         global BlackOTLN
         BlackOTLN = not BlackOTLN
-        # print(BlackOTLN)
         
     def download(self):
         global app
@@ -1259,6 +1207,8 @@ class Display():
         global WalkToPosition
         global VelocityLimit
         global speedoff
+        global LimitedVelocity
+        global AutomatedActions
         
         global MostTime
         global LeastTime
@@ -1270,15 +1220,24 @@ class Display():
                 break
             else:
                 hatDir = None
-        # print(hatDir)
         
         LeastTime = int(self.mnsboxlst.get())
         MostTime = int(self.mxsboxlst.get())
         if LeastTime >= MostTime:
             self.maxvar.set(LeastTime+1)
-        # speedoff = float(self.sbox.get())
         
         mousepos = pyautogui.position()
+        
+        
+        if LimitedVelocity:
+            self.LTVCheck.config(text="Toggle OFF")
+        else:
+            self.LTVCheck.config(text="Toggle ON")
+        
+        if AutomatedActions:
+            self.AACheck.config(text="Toggle OFF")
+        else:
+            self.AACheck.config(text="Toggle ON")
         
         #debugs
         self.LTVAMT.configure(text=f"{VelocityLimit}")
@@ -1288,12 +1247,9 @@ class Display():
         self.MPMNT.configure(text=f"({mousepos.x} , {mousepos.y})")
         
         self.master.lift()
-        self.master.geometry('{width}x{height}+{x}+{y}'.format(x=self.x+int(img.width/2) - 90 , y=self.y-310, width=str(220), height=str(280)))
+        self.master.geometry('{width}x{height}+{x}+{y}'.format(x=self.x+int(img.width/2) - 128 , y=self.y-330, width=str(256), height=str(300)))
         self.master.after(10, self.update)
         
-        # if time.time() >= self.t + 600:
-        #     menuopen = False
-        #     self.master.destroy()
         if menuopen == False:
             self.master.destroy()
         
